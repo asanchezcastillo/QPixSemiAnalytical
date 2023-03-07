@@ -133,9 +133,7 @@ This function computes the visibility of each optical detector from the scintill
 ```c++
 void SemiAnalyticalModel::detectedNumPhotons(std::vector<int>& DetectedNumPhotons, const std::vector<double>& OpDetVisibilities,const int NumPhotons) const
 ```
-This computes the number of photons reaching each detector. 
-
-The second relevant class is PropagationTimeModel. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated (this usually takes ~40s). The most relevant function of this class is:
+This function computes the number of photons reaching each detector. The second relevant class is PropagationTimeModel. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated (this usually takes ~40s). The most relevant function of this class is:
 ```c++
 void PropagationTimeModel::getVUVTimes(std::vector<double>& arrivalTimes, const double distance, const size_t angle_bin)
 ```
@@ -163,19 +161,24 @@ Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, 
 ```
 With this information we can already compute the number of photons that will reach every optical channel:
 ```c++
-semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint); //Compute visibility for each optical detector.
-double nphot=Edep->LArQL(); //Compute number of photons generated with LArQL model.
-semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot); //Compute the number of photons detected by each channel.
+//Compute visibility for each optical detector.
+semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint); 
+//Compute number of photons generated with LArQL model.
+double nphot=Edep->LArQL(); 
+//Compute the number of photons detected by each channel.
+semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot); 
 ```
 Finally, we can loop over each optical channel to sample the arrival times of the detected photons:
 With this information we can already compute the number of photons that will reach every optical channel:
 ```c++
 PropTime->propagationTime(transport_time, ScintPoint, channel);
-for (size_t i = 0; i < n_detected; ++i) //Loop over detected photons
+//Loop over detected photons
+for (size_t i = 0; i < n_detected; ++i) 
 {
     int time;
     time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+PropTime->ScintTime() ); 
-    ++photonHitCollection[channel].DetectedPhotons[time]; //Add an entry to [OpChannel,time]
+    //Add an entry to [OpChannel,time]
+    ++photonHitCollection[channel].DetectedPhotons[time]; 
 }
 ```
 After looping over all the hits, we will have an output root file containing an object:
