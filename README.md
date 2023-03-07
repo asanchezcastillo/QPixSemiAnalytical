@@ -49,14 +49,14 @@ Parameters file
 ---------------
 Is is required to provide a "params.json" file containing all the relevant input parameters for the simulation. The required parameters are:
 ```
-"DetectorPlaneXZ": whether the detector plane is the XZ plane. 
+DetectorPlaneXZ: whether the detector plane is the XZ plane (true) or in the YZ plane (false). 
 geometry_file: name of the geometry file. 
 nOpDet: number of optical detectors.
 vuv_absorption_length: LAr VUV absorption length in cm.
 GH_params: Array of arrays containing GH parameters for each angle bin.
 StepSize: Step size in cm to generate the timing parameterization functions.
-max_d:
-min_d:
+max_d: Max distance to generate timing parameterization
+min_d: Min distance to generate timing parameterization
 inflexion_point_distance: Distance at which the timing sampling switches from a landau + exponential distribution to only an exponential.
 VUVGroupMean: VUV photons mean group velocity in cm/ns.
 VUVGroupMax: VUV photons max group velocity in cm/ns.
@@ -99,12 +99,22 @@ ID XPosition YPosition ZPosition Heigh Width
 
 The first raw is only for ilustration purposes and should not be included in the actual geometry file. The name of the geometry file has to be provided in the parameters file "params.json". At the moment, the simulation admits two different configurations: one with the detectors in the XZ plane, corresponding to a DUNE-VD-like geometry and another with the detectors in the YZ plane, as in the DUNE-HD geometry.
 
-
 Root input files
 ---------------
 It is also required a .root input file containing the information on the energy depositions of the events that are to be simulated. The file should contain an "event" tree with the following branches:
-
-
+```c++
+input_tree->SetBranchAddress("run",&run);
+input_tree->SetBranchAddress("hit_start_x",&hitX_start);
+input_tree->SetBranchAddress("hit_end_x",&hitX_end);
+input_tree->SetBranchAddress("hit_start_y",&hitY_start);
+input_tree->SetBranchAddress("hit_end_y",&hitY_end);
+input_tree->SetBranchAddress("hit_start_z",&hitZ_start);
+input_tree->SetBranchAddress("hit_end_z",&hitZ_end);
+input_tree->SetBranchAddress("hit_energy_deposit",&edep);
+input_tree->SetBranchAddress("hit_start_t",&time_start);
+input_tree->SetBranchAddress("hit_end_t",&time_end);
+input_tree->SetBranchAddress("hit_length",&length);
+```
 
 Running the code
 ---------------
@@ -115,7 +125,7 @@ Finally, the code is ready to be run as follows:
 
 Examining the code
 ---------------
-Now were will go through the code to show how it is structured and the most relevant bits. In the first place, we have the SemiAnalytical class, which is in charge of computing the number of photons that reach each photon detector. The constructor of this class takes the parameter file as an argument and its two most relevant functions are: 
+Now were will go through the code to show how it is structured and the most relevant bits. In the first place, we have the SemiAnalytical class, which is in charge of computing the number of photons that reach each photon detector. Its two most relevant functions are: 
 ```c++
 void SemiAnalyticalModel::detectedDirectVisibilities(std::vector<double>& DetectedVisibilities, Point_t const& ScintPoint) const
 ```
@@ -125,5 +135,52 @@ void SemiAnalyticalModel::detectedNumPhotons(std::vector<int>& DetectedNumPhoton
 ```
 This computes the number of photons reaching each detector. 
 
-The second relevant class is PropagationTimeModel, whose constructor also takes a parameter file as an argument. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated.
+The second relevant class is PropagationTimeModel. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated (this usually takes ~40s). The most relevant function of this class is:
+```c++
+void PropagationTimeModel::getVUVTimes(std::vector<double>& arrivalTimes, const double distance, const size_t angle_bin)
+```
+This function computes the number arrival times from the semi-analytical model parameterization.  
+
+Code workflow
+---------------
+Having described the most important clases of the code, we can roughly understand its workflow. The first relevant part is to initalize an object of the SemiAnalyticalModel and the PropagationTimeModel which will be used for the relevant calculations:
+
+```c++
+std::unique_ptr<SemiAnalyticalModel> semi;
+//Initialize SemiAnalyticalModel object
+semi = std::make_unique<SemiAnalyticalModel>(OpParams); 
+std::unique_ptr<PropagationTimeModel> PropTime;
+//Initialize PropagationTimeModel object
+PropTime = std::make_unique<PropagationTimeModel>(OpParams); 
+```
+Now, for each event we will loop over energy depositions, defining for each one an object of the class EnergyDeposition, from which we will get the relevant information for the semi-analytical model calculations:
+```c++
+// Initialize the energy deposition object with its StartPoint and the EndPoint:
+SemiAnalyticalModel::Point_t StartPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
+SemiAnalyticalModel::Point_t EndPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
+std::unique_ptr<EnergyDeposition> Edep;
+Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, EndPoint, time_start->at(nHit), time_end->at(nHit) ,length->at(nHit));
+```
+With this information we can already compute the number of photons that will reach every optical channel:
+```c++
+semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint); //Compute visibility for each optical detector.
+double nphot=Edep->LArQL(); //Compute number of photons generated with LArQL model.
+semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot); //Compute the number of photons detected by each channel.
+```
+Finally, we can loop over each optical channel to sample the arrival times of the detected photons:
+With this information we can already compute the number of photons that will reach every optical channel:
+```c++
+PropTime->propagationTime(transport_time, ScintPoint, channel);
+for (size_t i = 0; i < n_detected; ++i) //Loop over detected photons
+{
+    int time;
+    time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+PropTime->ScintTime() ); 
+    ++photonHitCollection[channel].DetectedPhotons[time]; //Add an entry to [OpChannel,time]
+}
+```
+After looping over all the hits, we will have an output root file containing an object:
+```c++
+std::vector<std::vector<double>> SimPhoton;
+```
+The first dimension refers to each one of the optical channel, whereas the second dimension stores each timetick (1ttick=1ns) at which a photon is detected.
 
