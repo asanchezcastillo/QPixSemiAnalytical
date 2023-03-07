@@ -115,7 +115,7 @@ Finally, the code is ready to be run as follows:
 
 Examining the code
 ---------------
-Now were will go through the code to show how it is structured and the most relevant bits. In the first place, we have the SemiAnalytical class, which is in charge of computing the number of photons that reach each photon detector. The constructor of this class takes the parameter file as an argument and its two most relevant functions are: 
+Now were will go through the code to show how it is structured and the most relevant bits. In the first place, we have the SemiAnalytical class, which is in charge of computing the number of photons that reach each photon detector. Its two most relevant functions are: 
 ```c++
 void SemiAnalyticalModel::detectedDirectVisibilities(std::vector<double>& DetectedVisibilities, Point_t const& ScintPoint) const
 ```
@@ -125,5 +125,50 @@ void SemiAnalyticalModel::detectedNumPhotons(std::vector<int>& DetectedNumPhoton
 ```
 This computes the number of photons reaching each detector. 
 
-The second relevant class is PropagationTimeModel, whose constructor also takes a parameter file as an argument. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated.
+The second relevant class is PropagationTimeModel. When an object of this class is initialized a vector of TF1 objects containing a set of generated timing Ladau+Exponential functions is generated (this usually takes ~40s). The most relevant function of this class is:
+```c++
+void PropagationTimeModel::getVUVTimes(std::vector<double>& arrivalTimes, const double distance, const size_t angle_bin)
+```
+This function computes the number arrival times from the semi-analytical model parameterization.  
+
+Code workflow
+---------------
+Having described the most important clases of the code, we can roughly understand its workflow. The first relevant part is to initalize an object of the SemiAnalyticalModel and the PropagationTimeModel which will be used for the relevant calculations:
+
+```c++
+std::unique_ptr<SemiAnalyticalModel> semi;
+semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
+std::unique_ptr<PropagationTimeModel> PropTime;
+PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
+```
+Now, for each event we will loop over energy depositions, defining for each one an object of the class EnergyDeposition, from which we will get the relevant information for the semi-analytical model calculations:
+```c++
+// Initialize the energy deposition object with its StartPoint and the EndPoint:
+SemiAnalyticalModel::Point_t StartPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
+SemiAnalyticalModel::Point_t EndPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
+std::unique_ptr<EnergyDeposition> Edep;
+Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, EndPoint, time_start->at(nHit), time_end->at(nHit) ,length->at(nHit));
+```
+With this information we can already compute the number of photons that will reach every optical channel:
+```c++
+semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint); //Compute visibility for each optical detector.
+double nphot=Edep->LArQL(); //Compute number of photons generated with LArQL model.
+semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot); //Compute the number of photons detected by each channel.
+```
+Finally, we can loop over each optical channel to sample the arrival times of the detected photons:
+With this information we can already compute the number of photons that will reach every optical channel:
+```c++
+PropTime->propagationTime(transport_time, ScintPoint, channel);
+for (size_t i = 0; i < n_detected; ++i) //Loop over detected photons
+{
+    int time;
+    time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+PropTime->ScintTime() ); 
+    ++photonHitCollection[channel].DetectedPhotons[time]; //Add an entry to [OpChannel,time]
+}
+```
+After looping over all the hits, we will have an output root file containing an object:
+```c++
+std::vector<std::vector<double>> SimPhoton;
+```
+The first dimension refers to each one of the optical channel, whereas the second dimension stores each timetick (1ttick=1ns) at which a photon is detected.
 
