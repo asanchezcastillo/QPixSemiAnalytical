@@ -1,4 +1,7 @@
-/* main.cc */
+// SemiAnalyticalModel
+//  - fast optical simulation of scintillation photons using semi-analytical model.
+
+// March 2022 by A. Sánchez Castillo
 
 #include <iostream>
 
@@ -10,7 +13,7 @@
 #include <fstream>
 #include <chrono>
 
-//
+//Root includes
 #include "TROOT.h"
 #include "TTree.h"
 #include "TFile.h"
@@ -19,6 +22,7 @@
 #include "TF1.h"
 #include "TCanvas.h"
 
+//Class headers includes
 #include "SimPhotons.h"
 #include "PropagationTimeModel.h"
 #include "EnergyDeposition.h"
@@ -41,11 +45,9 @@ int main(int argc, char **argv)
   {  
    if (i + 1 != argc)
    {
-     if (strcmp(argv[i], "-file") == 0) 
+     if (strcmp(argv[i], "--file") == 0) 
       {                 
        fileName = argv[i + 1];   
-       std::cout << "fname " << fileName << std::endl; // Curioso que std::cout trata a char * fileName como un puntero a un string de C, 
-                                                        // y hace el cout como si fuera string y no puntero.
         i++;   
       }
     }
@@ -54,20 +56,13 @@ int main(int argc, char **argv)
   if(fileName==0) 
   {
    std::cout << "No file name given, aborting execution" << std::endl; 
-   //abort();
+   abort();
   }
-
-
-
-
-
-
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
 
-
   //Input file:
-  TFile input_file("banger_100MeVKE.root");
+  TFile input_file(fileName);
   TTree *input_tree = (TTree*)input_file.Get("event_tree;4");
   
   // Reading root file information. Some cleanup needed.
@@ -97,7 +92,7 @@ int main(int argc, char **argv)
 
   //Output file:
   TFile *OutputFile = TFile::Open("Output_19.root", "RECREATE");
-
+  // Initialize PhotonHitCollection to store simulated hits.
   std::unique_ptr<std::vector<SimPhotons>> photonCol{new std::vector<SimPhotons>{}};
   auto& photonHitCollection{*photonCol};
   unsigned int fNOpChannels = OpParams["nOpDet"];
@@ -117,10 +112,8 @@ int main(int argc, char **argv)
   int generated_counter=0;
   unsigned long runID;
   std::vector<std::vector<double>> SimPhotons;
-
-  for (size_t nRun = 19; nRun < 20; nRun++)
+  for (size_t nRun = 0; nRun < 1; nRun++)
   {    
-    int time_call=0;
     SimPhotons.clear();
     SimPhotons.resize(fNOpChannels);
     TTree *OutputTree = new TTree("event", "event");
@@ -137,16 +130,15 @@ int main(int argc, char **argv)
      Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, EndPoint, time_start->at(nHit), time_end->at(nHit) ,length->at(nHit));
      SemiAnalyticalModel::Point_t ScintPoint{(Edep->MidPoint()).x, (Edep->MidPoint()).y, (Edep->MidPoint()).z};
      semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
-     double nphot_fast=Edep->LArQL(); 
-
-    // std::cout << "LightYield " <<  nphot_fast/Edep->Energy() << std::endl; 
-     //double nphot_fast=Edep->Energy()*24000; 
-     generated_counter = generated_counter + nphot_fast;
+     double nphot=Edep->LArQL(); 
+    // std::cout << "LightYield " <<  nphot/Edep->Energy() << std::endl; 
+     //double nphot=Edep->Energy()*24000; 
+     generated_counter = generated_counter + nphot;
      // Fill the DetectedNum vector with the given OpDetVisibilities
      cum_edep=cum_edep+Edep->Energy();
     // std::cout << "Edep cum: " << cum_edep << std::endl; 
     // std::cout << "Generated total: " << generated_counter << std::endl; 
-     semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot_fast);
+     semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot);
      for (int channel = 0 ; channel< DetectedNum.size() ; channel++)
       {
        int n_detected = DetectedNum.at(channel);
@@ -156,10 +148,9 @@ int main(int argc, char **argv)
        PropTime->propagationTime(transport_time, ScintPoint, channel);
        for (size_t i = 0; i < n_detected; ++i)
         {
-         int time=0; 
+         int time; 
          time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+PropTime->ScintTime() );
          ++photonHitCollection[channel].DetectedPhotons[time];
-         time_call+=1;
         }
       }
     // std::cout << "Detected Photons "<<  nPhotons << std::endl; 
@@ -177,7 +168,6 @@ int main(int argc, char **argv)
          }
       }
     }
-    std::cout << "The number of time calls is : " << time_call << std::endl;
     OutputTree->Branch("eventID", &runID);
     OutputTree->Branch("SimPhotonsperOpChVUV",&SimPhotons);
     OutputTree->Branch("GeneratedPhotons",&generated_counter);
@@ -185,11 +175,11 @@ int main(int argc, char **argv)
     OutputTree->Fill();
     OutputFile->cd();
   }// end event loop
-    OutputFile->Write();
-    OutputFile->Close();
-
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
+  OutputFile->Write();
+  OutputFile->Close();
+  
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
   return 0;
 }
 
