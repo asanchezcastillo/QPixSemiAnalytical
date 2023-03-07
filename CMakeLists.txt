@@ -26,5 +26,5 @@ target_link_libraries(SemiLib PUBLIC ROOT::RIO ROOT::Net ROOT::MathCore ROOT::Hi
 target_link_libraries(SemiLib PRIVATE nlohmann_json::nlohmann_json)
 # Create the main program using the library.
    
-add_executable(main main.cc PropagationTimeModel.cc SemiAnalyticalModel.cc)
-target_link_libraries(main SemiLib)
+add_executable(OpticalSimulation main.cc PropagationTimeModel.cc SemiAnalyticalModel.cc)
+target_link_libraries(OpticalSimulation SemiLib)

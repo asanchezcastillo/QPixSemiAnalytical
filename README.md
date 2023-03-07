@@ -120,7 +120,7 @@ Running the code
 ---------------
 Finally, the code is ready to be run as follows:
 ```
-./main --file <input_file_name>
+./OpticalSimulation --file <input_file_name>
 ```
 
 Examining the code
