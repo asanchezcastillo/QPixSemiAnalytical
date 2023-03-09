@@ -27,7 +27,6 @@
 #include "PropagationTimeModel.h"
 #include "EnergyDeposition.h"
 
-
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -37,32 +36,42 @@ using namespace std;
 int main(int argc, char **argv)
 {
   
- std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-  
-  char* fileName=0;
+ 
+ 
+  char* inputFileName=0;
+  char* outputFileName=0;
   for (int i = 1; i < argc; i++)
   {  
    if (i + 1 != argc)
    {
-     if (strcmp(argv[i], "--file") == 0) 
-      {                 
-       fileName = argv[i + 1];   
-        i++;   
-      }
+    if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0 )  
+    {                 
+     inputFileName = argv[i + 1];   
+     i++;   
     }
+    if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0 )  
+    {                 
+     outputFileName = argv[i + 1];   
+     i++;   
+    }
+   }
   }
    
-  if(fileName==0) 
+  if(inputFileName==0) 
   {
-   std::cout << "No file name given, aborting execution" << std::endl; 
+   std::cout << "No input file name given, aborting execution" << std::endl; 
+   abort();
+  }
+  if(outputFileName==0) 
+  {
+   std::cout << "No output file name given, aborting execution" << std::endl; 
    abort();
   }
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
 
   //Input file:
-  TFile input_file(fileName);
+  TFile input_file(inputFileName);
   TTree *input_tree = (TTree*)input_file.Get("event_tree;4");
   
   // Reading root file information. Some cleanup needed.
@@ -91,7 +100,7 @@ int main(int argc, char **argv)
   input_tree->SetBranchAddress("hit_length",&length);
 
   //Output file:
-  TFile *OutputFile = TFile::Open("Output_19.root", "RECREATE");
+  TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
   // Initialize PhotonHitCollection to store simulated hits.
   std::unique_ptr<std::vector<SimPhotons>> photonCol{new std::vector<SimPhotons>{}};
   auto& photonHitCollection{*photonCol};
@@ -112,8 +121,10 @@ int main(int argc, char **argv)
   int generated_counter=0;
   unsigned long runID;
   std::vector<std::vector<double>> SimPhotons;
-  for (size_t nRun = 0; nRun < 1; nRun++)
+  for (size_t nRun = 0; nRun < 10; nRun++)
   {    
+    //Start counting time
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     SimPhotons.clear();
     SimPhotons.resize(fNOpChannels);
     TTree *OutputTree = new TTree("event", "event");
@@ -174,12 +185,13 @@ int main(int argc, char **argv)
     OutputTree->Branch("DetectedPhotons",&nPhotons);
     OutputTree->Fill();
     OutputFile->cd();
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Event: " << nRun <<" Elapsed time: " <<  std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
   }// end event loop
   OutputFile->Write();
   OutputFile->Close();
   
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
+
   return 0;
 }
 
