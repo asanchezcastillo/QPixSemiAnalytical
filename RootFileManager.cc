@@ -96,7 +96,6 @@ void ROOTFileManager::GetEvent(int nRun)
 // Get number of entries
  int ROOTFileManager::NEntries()
  {
-    std::cout << "The number of entries is: " << input_tree->GetEntries() << std::endl;
     return input_tree->GetEntries();
 
  }

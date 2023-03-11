@@ -88,21 +88,23 @@ int main(int argc, char **argv)
   semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
   std::unique_ptr<PropagationTimeModel> PropTime;
   PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
-  // Fill the OpDetVisibilities vector with the give scintillation point
-  double cum_edep=0;
-  int generated_counter=0;
   unsigned long runID;
   std::vector<std::vector<double>> SavePhotons;
   
-  for (size_t nRun = 0; nRun < 20; nRun++)
+  for (size_t nRun = 0; nRun < nEntries; nRun++)
   {    
+    double cum_edep=0;
+    unsigned int generated_counter=0;
+    unsigned int nPhotons=0;
     photonHitCollection.resize(fNOpChannels);
+    runID=nRun;
     for (size_t i = 0; i < fNOpChannels; ++i)
     {
-      photonHitCollection[i].OpChannel = i;
+     photonHitCollection[i].OpChannel = i;
     }
     SavePhotons.resize(fNOpChannels);
     rfm->GetEvent(nRun);
+    
     // Reading root file information.
     std::vector<double> *hitX_start = rfm->GetXStart();
     std::vector<double> *hitX_end = rfm->GetXEnd();
@@ -119,8 +121,7 @@ int main(int argc, char **argv)
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     TTree *OutputTree = new TTree("event", "event");
     std::cout << "Reading event number: " << nRun << std::endl;
-    unsigned int nPhotons=0;
-    runID=nRun;
+
     for (size_t nHit = 0; nHit < hitX_start->size(); nHit++ )
      {
      // Initialize the energy deposition object with its StartPoint and the EndPoint:
@@ -131,10 +132,9 @@ int main(int argc, char **argv)
      SemiAnalyticalModel::Point_t ScintPoint{(Edep->MidPoint()).x, (Edep->MidPoint()).y, (Edep->MidPoint()).z};
      semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
      double nphot=Edep->LArQL(); 
-     //double nphot=Edep->Energy()*24000; 
      generated_counter = generated_counter + nphot;
      // Fill the DetectedNum vector with the given OpDetVisibilities
-     cum_edep=cum_edep+Edep->Energy(); //Cumulative energy deposition per step. Currently not stored.
+     cum_edep+=Edep->Energy(); //Cumulative energy deposition per step. Currently not stored.
     //  std::cout << "Cum edep: " << cum_edep << " nHit " << nHit <<std::endl;
     //  std::cout << "Number of photons: "<< nphot << std::endl;
      semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot);
@@ -167,6 +167,7 @@ int main(int argc, char **argv)
     OutputTree->Branch("SavedPhotons",&SavePhotons);
     OutputTree->Branch("GeneratedPhotons",&generated_counter);
     OutputTree->Branch("DetectedPhotons",&nPhotons);
+    OutputTree->Branch("TotalEdep", &cum_edep);
     OutputTree->Fill();
     OutputFile->cd();
     rfm->EventReset();
