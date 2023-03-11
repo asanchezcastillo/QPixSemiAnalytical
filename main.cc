@@ -42,18 +42,24 @@ int main(int argc, char **argv)
   
   char* inputFileName=0;
   char* outputFileName=0;
+  int nMaxEvents=0;
   for (int i = 1; i < argc; i++)
   {  
    if (i + 1 != argc)
    {
-    if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0 )  
+    if (strcmp(argv[i], "--input") == 0 || strcmp(argv[i], "-i") == 0 )  //Input file name
     {                 
      inputFileName = argv[i + 1];   
      i++;   
     }
-    if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0 )  
+    if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0 )  // Output file name
     {                 
      outputFileName = argv[i + 1];   
+     i++;   
+    }
+    if (strcmp(argv[i], "-n") == 0 )  //Max number of events
+    {                 
+     nMaxEvents = atoi(argv[i + 1]);   
      i++;   
     }
    }
@@ -61,21 +67,32 @@ int main(int argc, char **argv)
    
   if(inputFileName==0) 
   {
-   std::cout << "No input file name given, aborting execution" << std::endl; 
+   std::cout << "WARNING: No input file name given, aborting execution" << std::endl; 
    abort();
   }
   if(outputFileName==0) 
   {
-   std::cout << "No output file name given, aborting execution" << std::endl; 
+   std::cout << "WARNING: No output file name given, aborting execution" << std::endl; 
    abort();
   }
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
-
   std::unique_ptr<ROOTFileManager> rfm;
   rfm = std::make_unique<ROOTFileManager>(inputFileName, outputFileName); //Initialize rfm object
-  int nEntries = rfm->NEntries();
-   std::cout << "The number of events is: " << rfm->NEntries() << std::endl;
+  if(nMaxEvents==0)
+  {
+    nMaxEvents = rfm->NEntries();
+    
+  }
+  else
+  {
+    if(nMaxEvents>rfm->NEntries())
+    {
+      std::cout << "WARNING: The input file does not contain that many events! Aborting execution." << std::endl;
+      abort();
+    }
+  }
+   std::cout << "The number of events to be simulated is: " << nMaxEvents << std::endl;
   //Output file:
   TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
   // Initialize PhotonHitCollection to store simulated hits.
@@ -91,7 +108,7 @@ int main(int argc, char **argv)
   unsigned long runID;
   std::vector<std::vector<double>> SavePhotons;
   
-  for (size_t nRun = 0; nRun < nEntries; nRun++)
+  for (size_t nRun = 0; nRun < nMaxEvents; nRun++)
   {    
     double cum_edep=0;
     unsigned int generated_counter=0;

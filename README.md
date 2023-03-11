@@ -120,8 +120,10 @@ Running the code
 ---------------
 Finally, the code is ready to be run as follows:
 ```
-./OpticalSimulation -f <input_file_name> -o <output_file_name>
+./OpticalSimulation -i <input_file_name> -o <output_file_name> -n <number_of_events>
 ```
+
+Note: the input file name and the output file name are mandatory parameters whereas the number of events is not. If no n is given, the whole input file will be processed.
 
 Examining the code
 ---------------
