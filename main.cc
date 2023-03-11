@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   std::unique_ptr<ROOTFileManager> rfm;
   rfm = std::make_unique<ROOTFileManager>(inputFileName, outputFileName); //Initialize rfm object
   int nEntries = rfm->NEntries();
-   std::cout << "The number of events is: " << rfm->GetEntries() << std::endl;
+   std::cout << "The number of events is: " << rfm->NEntries() << std::endl;
   //Output file:
   TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
   // Initialize PhotonHitCollection to store simulated hits.
