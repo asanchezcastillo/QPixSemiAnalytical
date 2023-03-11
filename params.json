@@ -1,7 +1,7 @@
 
 {
-  "DetectorPlaneXZ": false,
-  "nOpDet": 2800,
+  "DetectorPlaneXZ": true,
+  "nOpDet": 4800,
   "vuv_absorption_length": 2000,
   "geometry_file": "positions_40_120.txt",
   "anode_centre": [0,0,0],

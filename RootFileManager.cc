@@ -8,22 +8,16 @@
 
 #include "ROOTFileManager.h"
 
-
-
-
 // ROOT includes
 #include "TObject.h"
 
 // math includes
 #include <math.h>
 
-
-
-
 //--------------------------------------------------------------------------
-ROOTFileManager::ROOTFileManager(std::string const& input_file, std::string const& output_file)
+ROOTFileManager::ROOTFileManager(char* inputFileName, char* outputFileName)
 {
-    Initialize(input_file, output_file);
+    Initialize(inputFileName, outputFileName);
 }
 
 //--------------------------------------------------------------------------
@@ -32,36 +26,18 @@ ROOTFileManager::~ROOTFileManager()
 
 //--------------------------------------------------------------------------
 
-
-void ROOTFileManager::Initialize(std::string const& input_file, std::string const& output_file)
+void ROOTFileManager::Initialize(char* inputFileName, char* outputFileName)
 {
-    
     //Input file:
-    TFile input_file("banger_100MeVKE.root");
-    TTree *input_tree = (TTree*)input_file.Get("event_tree;4");
-
-    TFile *OutputFile = TFile::Open("Output.root", "RECREATE");
-
-    set_branch_addresses();
-    
+    input_file = new TFile(inputFileName);
+    input_tree = (TTree*)input_file->Get("event_tree");
+    TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
+    set_branch_addresses(input_tree);
 }
 
-
 //--------------------------------------------------------------------------
-void ROOTFileManager::set_branch_addresses()
+void ROOTFileManager::set_branch_addresses(TTree *input_tree)
 {
-    run=-1;
-    hitX_start = new std::vector<double>();
-    hitX_end = new std::vector<double>();
-    hitY_start = new std::vector<double>();
-    hitY_end = new std::vector<double>();
-    hitZ_start = new std::vector<double>();
-    hitZ_end = new std::vector<double>();
-    time_start = new std::vector<double>();
-    time_end = new std::vector<double>();
-    edep = new std::vector<double>();
-    length = new std::vector<double>();
-
     input_tree->SetBranchAddress("run",&run);
     input_tree->SetBranchAddress("hit_start_x",&hitX_start);
     input_tree->SetBranchAddress("hit_end_x",&hitX_end);
@@ -73,19 +49,8 @@ void ROOTFileManager::set_branch_addresses()
     input_tree->SetBranchAddress("hit_start_t",&time_start);
     input_tree->SetBranchAddress("hit_end_t",&time_end);
     input_tree->SetBranchAddress("hit_length",&length);
-
 }
 
-/*    
-//--------------------------------------------------------------------------
-unsigned int ROOTFileManager::NumberEntries()
-{
-    if (ttree_) return ttree_->GetEntries();
-    return -1;
-}
-
-//--------------------------------------------------------------------------
-*/
 void ROOTFileManager::EventFill()
 {
     OutputTree->Branch("eventID", &runID);
@@ -97,17 +62,6 @@ void ROOTFileManager::EventFill()
 }
 
 //--------------------------------------------------------------------------
-void ROOTFileManager::EventReset(int fNOpChannels)
-{   
-    runID=-1;
-    generated_counter=0;
-    nPhotons=0;
-    SavePhotons = new std::vector<std::vector<double>>();
-    SavePhotons.resize(fNOpChannels);
-    TTree *OutputTree = new TTree("event", "event");
-
-}
-//--------------------------------------------------------------------------
 void ROOTFileManager::Save()
 {
     OutputFile->Write();
@@ -118,10 +72,34 @@ void ROOTFileManager::Save()
 // gets the event from the file and tunrs it into electrons
 void ROOTFileManager::GetEvent(int nRun)
 {
-    input_tree->input_tree->GetEntry(nRun);;
-
+    input_tree->GetEntry(nRun);
 }//Get_Event
 
+//--------------------------------------------------------------------------
+// Reset the event
+ void ROOTFileManager::EventReset()
+ {
+    int run=-1;
+    hitX_start->clear(); 
+    hitX_end->clear();
+    hitY_start->clear();
+    hitY_end->clear();
+    hitZ_start->clear();
+    hitZ_end->clear();
+    time_start->clear();
+    time_end->clear();
+    edep->clear();
+    length->clear();
+
+ }
+ //--------------------------------------------------------------------------
+// Get number of entries
+ int ROOTFileManager::NEntries()
+ {
+    std::cout << "The number of entries is: " << input_tree->GetEntries() << std::endl;
+    return input_tree->GetEntries();
+
+ }
 
 
 

@@ -67,6 +67,13 @@
         recomb = recomb + EscapingFraction*FieldCorrection;
         num_electrons = num_ions*recomb;
         num_photons = num_quanta - num_electrons;
+
+
+
+        if(num_photons<0){   
+         std::cout << "WARNING: the number of photons is < 0, ignoring this hit" << std::endl;;
+         return 0;
+         }
         return num_photons ;
     }
 

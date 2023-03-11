@@ -5,13 +5,14 @@
 
 #include <iostream>
 
-#include "SemiAnalyticalModel.h"
+
 
 #include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <nlohmann/json.hpp>
 
 //Root includes
 #include "TROOT.h"
@@ -23,11 +24,14 @@
 #include "TCanvas.h"
 
 //Class headers includes
+#include "SemiAnalyticalModel.h"
 #include "SimPhotons.h"
 #include "PropagationTimeModel.h"
 #include "EnergyDeposition.h"
+#include"RootFileManager.h"
+#include"RootFileManager.cc"
 
-#include <nlohmann/json.hpp>
+
 
 using json = nlohmann::json;
 
@@ -36,8 +40,6 @@ using namespace std;
 int main(int argc, char **argv)
 {
   
- 
- 
   char* inputFileName=0;
   char* outputFileName=0;
   for (int i = 1; i < argc; i++)
@@ -70,46 +72,16 @@ int main(int argc, char **argv)
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
 
-  //Input file:
-  TFile input_file(inputFileName);
-  TTree *input_tree = (TTree*)input_file.Get("event_tree;4");
-  
-  // Reading root file information. Some cleanup needed.
-  int run;
-  std::vector<double> *hitX_start = new std::vector<double>();
-  std::vector<double> *hitX_end = new std::vector<double>();
-  std::vector<double> *hitY_start = new std::vector<double>();
-  std::vector<double> *hitY_end = new std::vector<double>();
-  std::vector<double> *hitZ_start = new std::vector<double>();
-  std::vector<double> *hitZ_end = new std::vector<double>();
-  std::vector<double> *time_start = new std::vector<double>();
-  std::vector<double> *time_end = new std::vector<double>();
-  std::vector<double> *edep = new std::vector<double>();
-  std::vector<double> *length = new std::vector<double>();
-
-  input_tree->SetBranchAddress("run",&run);
-  input_tree->SetBranchAddress("hit_start_x",&hitX_start);
-  input_tree->SetBranchAddress("hit_end_x",&hitX_end);
-  input_tree->SetBranchAddress("hit_start_y",&hitY_start);
-  input_tree->SetBranchAddress("hit_end_y",&hitY_end);
-  input_tree->SetBranchAddress("hit_start_z",&hitZ_start);
-  input_tree->SetBranchAddress("hit_end_z",&hitZ_end);
-  input_tree->SetBranchAddress("hit_energy_deposit",&edep);
-  input_tree->SetBranchAddress("hit_start_t",&time_start);
-  input_tree->SetBranchAddress("hit_end_t",&time_end);
-  input_tree->SetBranchAddress("hit_length",&length);
-
+  std::unique_ptr<ROOTFileManager> rfm;
+  rfm = std::make_unique<ROOTFileManager>(inputFileName, outputFileName); //Initialize rfm object
+  int nEntries = rfm->NEntries();
+   std::cout << "The number of events is: " << rfm->GetEntries() << std::endl;
   //Output file:
   TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
   // Initialize PhotonHitCollection to store simulated hits.
   std::unique_ptr<std::vector<SimPhotons>> photonCol{new std::vector<SimPhotons>{}};
   auto& photonHitCollection{*photonCol};
   unsigned int fNOpChannels = OpParams["nOpDet"];
-  photonHitCollection.resize(fNOpChannels);
-  for (size_t i = 0; i < fNOpChannels; ++i)
-  {
-    photonHitCollection[i].OpChannel = i;
-  }
   std::vector<int> DetectedNum(fNOpChannels);
   std::vector<double> OpDetVisibilities;
   std::unique_ptr<SemiAnalyticalModel> semi;
@@ -120,16 +92,33 @@ int main(int argc, char **argv)
   double cum_edep=0;
   int generated_counter=0;
   unsigned long runID;
-  std::vector<std::vector<double>> SimPhotons;
-  for (size_t nRun = 0; nRun < 10; nRun++)
+  std::vector<std::vector<double>> SavePhotons;
+  
+  for (size_t nRun = 0; nRun < 20; nRun++)
   {    
+    photonHitCollection.resize(fNOpChannels);
+    for (size_t i = 0; i < fNOpChannels; ++i)
+    {
+      photonHitCollection[i].OpChannel = i;
+    }
+    SavePhotons.resize(fNOpChannels);
+    rfm->GetEvent(nRun);
+    // Reading root file information.
+    std::vector<double> *hitX_start = rfm->GetXStart();
+    std::vector<double> *hitX_end = rfm->GetXEnd();
+    std::vector<double> *hitY_start = rfm->GetYStart();
+    std::vector<double> *hitY_end = rfm->GetYEnd();
+    std::vector<double> *hitZ_start = rfm->GetZStart();
+    std::vector<double> *hitZ_end = rfm->GetZEnd();
+    std::vector<double> *time_start = rfm->GetTimeStart();
+    std::vector<double> *time_end = rfm->GetTimeEnd();
+    std::vector<double> *edep = rfm->GetEdep();
+    std::vector<double> *length = rfm->GetLength();
+
     //Start counting time
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    SimPhotons.clear();
-    SimPhotons.resize(fNOpChannels);
     TTree *OutputTree = new TTree("event", "event");
     std::cout << "Reading event number: " << nRun << std::endl;
-    input_tree->GetEntry(nRun);
     unsigned int nPhotons=0;
     runID=nRun;
     for (size_t nHit = 0; nHit < hitX_start->size(); nHit++ )
@@ -142,56 +131,52 @@ int main(int argc, char **argv)
      SemiAnalyticalModel::Point_t ScintPoint{(Edep->MidPoint()).x, (Edep->MidPoint()).y, (Edep->MidPoint()).z};
      semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
      double nphot=Edep->LArQL(); 
-    // std::cout << "LightYield " <<  nphot/Edep->Energy() << std::endl; 
      //double nphot=Edep->Energy()*24000; 
      generated_counter = generated_counter + nphot;
      // Fill the DetectedNum vector with the given OpDetVisibilities
-     cum_edep=cum_edep+Edep->Energy();
-    // std::cout << "Edep cum: " << cum_edep << std::endl; 
-    // std::cout << "Generated total: " << generated_counter << std::endl; 
+     cum_edep=cum_edep+Edep->Energy(); //Cumulative energy deposition per step. Currently not stored.
+    //  std::cout << "Cum edep: " << cum_edep << " nHit " << nHit <<std::endl;
+    //  std::cout << "Number of photons: "<< nphot << std::endl;
      semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot);
      for (int channel = 0 ; channel< DetectedNum.size() ; channel++)
       {
        int n_detected = DetectedNum.at(channel);
-       nPhotons=nPhotons+n_detected;
+       nPhotons+=n_detected;
        std::vector<double> transport_time;
        transport_time.resize(n_detected);
        PropTime->propagationTime(transport_time, ScintPoint, channel);
        for (size_t i = 0; i < n_detected; ++i)
         {
-         int time; 
+         int time=0; 
          time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+PropTime->ScintTime() );
          ++photonHitCollection[channel].DetectedPhotons[time];
         }
       }
-    // std::cout << "Detected Photons "<<  nPhotons << std::endl; 
-   }// end hits loop    
-    // With the Photon
+   }// end hits loop 
     for ( auto & fPhotons : (photonHitCollection) )
     {
-      int opChannel = fPhotons.OpChannel;
-      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++)
-      {       
-         for(int i = 0; i < fPhotons->second ; i++)
-         {
-         SimPhotons.at(opChannel).push_back(fPhotons->first);
-         }
-      }
+     int opChannel = fPhotons.OpChannel;
+     std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
+     for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
+       for(int i = 0; i < fPhotons->second ; i++){
+       SavePhotons.at(opChannel).push_back(fPhotons->first);
+       }
+     }
     }
     OutputTree->Branch("eventID", &runID);
-    OutputTree->Branch("SimPhotonsperOpChVUV",&SimPhotons);
+    OutputTree->Branch("SavedPhotons",&SavePhotons);
     OutputTree->Branch("GeneratedPhotons",&generated_counter);
     OutputTree->Branch("DetectedPhotons",&nPhotons);
     OutputTree->Fill();
     OutputFile->cd();
+    rfm->EventReset();
+    photonHitCollection.clear();
+    SavePhotons.clear();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::cout << "Event: " << nRun <<" Elapsed time: " <<  std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
   }// end event loop
   OutputFile->Write();
   OutputFile->Close();
-  
-
   return 0;
 }
 
