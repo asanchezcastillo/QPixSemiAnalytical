@@ -189,3 +189,6 @@ std::vector<std::vector<double>> SimPhoton;
 ```
 The first dimension refers to each one of the optical channel, whereas the second dimension stores each timetick (1ttick=1ns) at which a photon is detected.
 
+Analysis example
+---------------
+An example on how to analyze the output of the simulation can be found in a Jupyter Notebook under the Analysis folder. This folder contains an output file (Output.root) obtained for a one APA Dune-HD-like detector containing 960 pixels (24 in the beam direction and 40 in the Y direction). The output of the analysis notebook is an animation representing the number of photons detected by each pixel for each time tick (ns).
