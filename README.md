@@ -110,8 +110,8 @@ It is also required a .root input file containing the information on the energy 
 | Branch name                 |    Type                                     |  Description |             
 |-----------------------------|---------------------------------------------|--------------|  
 | run | int | Number of run |
-| hit_start_x | std::vector<\double\> | Initial X position of the G4Step (in cm)|
-| hit_end_x | std::vector<\double\> | Final X position of the G4Step (in cm)|
+| hit_start_x | std::vector<double\> | Initial X position of the G4Step (in cm)|
+| hit_end_x | std::vector<double\> | Final X position of the G4Step (in cm)|
 | hit_start_y | std::vector<\double\> | Initial Y position of the G4Step (in cm) |
 | hit_end_y | std::vector<\double\> | Final Y position of the G4Step (in cm) |
 | hit_start_z | std::vector<\double\> | Initial Z position of the G4Step (in cm) |
@@ -195,8 +195,8 @@ After looping over all the hits, we will have an output root file containing the
 | Branch name                 |    Type                                     |  Description |             
 |-----------------------------|---------------------------------------------|--------------|  
 | eventID | int | ID of the event |
-| SavedPhotons | std::vector<std::vector<int>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
-| photons_per_edep | std::vector<std::vector<double>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
+| SavedPhotons | std::vector<std::vector<\int>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
+| photons_per_edep | std::vector<std::vector<\double>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
 | Distance_average | std::vector<\double\> | Vector containing the mean weighted distance from each channel to the energy depositions in the event |
 | Angle_average | std::vector<\double\> | Vector containing the mean weighted angle from each channel to the energy depositions in the event |
 | GeneratedPhotons | int | Total number of photons generated during the event |
