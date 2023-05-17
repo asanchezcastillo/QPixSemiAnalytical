@@ -87,8 +87,6 @@ Is is required to provide a "params.json" file containing all the relevant input
 | EF | double | Electric field (in KeV/cm) |
 
 
-where alpha=0.0372 cm/kV, beta=0.0124 cm/kV, A=0.003384224, B=-6.57037, C=1.88418, and D=0.000129379 cm/MeV.
-
 The references included are for the parameter contained in this repository. This file has to be in the same folder as the executable, so you may have to move it to the build folder.
 
 Geometry file
@@ -126,6 +124,7 @@ It is also required a .root input file containing the information on the energy 
 Running the code
 ---------------
 Finally, the code is ready to be run as follows:
+
 ```
 ./OpticalSimulation -i <input_list_of_files> -n <number_of_events>
 ```
