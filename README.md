@@ -74,17 +74,20 @@ Is is required to provide a "params.json" file containing all the relevant input
 | Mpv2 | std::vector< std::vector<\double\>> | Vector containing MPV of the second Landau (in ns) |
 | Norm_over_entries2 | std::vector< std::vector<\double\>> | Vector containing normalization of the second Landau |
 | Width2 | std::vector< std::vector<\double\>> | Vector containing width of the second Landau |
-| fWion | double | Ionization work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
-| fWph | double | Ion+excitation work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
-| fRecombA | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fRecombk | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlChi0A | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlChi0B | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlChi0C | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlChi0D | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlAlpha | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
-| fLarqlBeta | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
+| fWion | double | Ionization work function for LAr (in MeV) [Phys. Rev. D 91, 092007 (2015)] |
+| fWph | double | Ion+excitation work function for LAr (in MeV) [Nucl.Instrum.Meth.A 291 (1990), 617-620] |
+| fRecombA | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fRecombk | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlChi0A | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlChi0B | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlChi0C | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlChi0D | double | LArQL model parameter (cm/MeV) https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlAlpha | double | LArQL model parameter (cm/kV) https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
+| fLarqlBeta | double | LArQL model parameter (cm/kV) https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
 | EF | double | Electric field (in KeV/cm) |
+
+
+where alpha=0.0372 cm/kV, beta=0.0124 cm/kV, A=0.003384224, B=-6.57037, C=1.88418, and D=0.000129379 cm/MeV.
 
 The references included are for the parameter contained in this repository. This file has to be in the same folder as the executable, so you may have to move it to the build folder.
 
