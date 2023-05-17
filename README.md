@@ -86,13 +86,11 @@ Is is required to provide a "params.json" file containing all the relevant input
 | fLarqlBeta | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
 | EF | double | Electric field (in KeV/cm) |
 
-
 The references included are for the parameter contained in this repository. This file has to be in the same folder as the executable, so you may have to move it to the build folder.
 
 Geometry file
 ---------------
 It is required to provide a geometry file under the build directory containing the optical detector's IDs, their central positions and their heights and widths. The information should be ordered in colums as follows:
-
 
 |    ID    |      X Position      |      Y Position      |       Z Position      |      Height      |      Width      |             
 |----------|----------------------|----------------------|-----------------------|------------------|-----------------|  
@@ -107,7 +105,6 @@ The name of the geometry file has to be provided in the parameters file "params.
 Root input files
 ---------------
 It is also required a .root input file containing the information on the energy depositions of the events that are to be simulated. The file should contain an "event" tree with the following branches:
-
 
 | Branch name                 |    Type                                     |  Description |             
 |-----------------------------|---------------------------------------------|--------------|  
@@ -127,10 +124,10 @@ Running the code
 ---------------
 Finally, the code is ready to be run as follows:
 ```
-./OpticalSimulation -i <input_file_name> -o <output_file_name> -n <number_of_events>
+./OpticalSimulation -i <input_list_of_files> -n <number_of_events>
 ```
 
-Note: the input file name and the output file name are mandatory parameters whereas the number of events is not. If no n is given, the whole input file will be processed.
+This will produce as many output files as input files were given in the input list. Note: The flag -n referst to the maximum number of events to be run whithin a single file. 
 
 Examining the code
 ---------------
@@ -189,12 +186,25 @@ for (size_t i = 0; i < n_detected; ++i)
     //Add an entry to [OpChannel,time]
     ++photonHitCollection[channel].DetectedPhotons[time]; 
 }
+
 ```
-After looping over all the hits, we will have an output root file containing an object:
-```c++
-std::vector<std::vector<double>> SimPhoton;
-```
-The first dimension refers to each one of the optical channel, whereas the second dimension stores each timetick (1ttick=1ns) at which a photon is detected.
+After looping over all the hits, we will have an output root file containing the following branches:
+
+| Branch name                 |    Type                                     |  Description |             
+|-----------------------------|---------------------------------------------|--------------|  
+| eventID | int | ID of the event |
+| SavedPhotons | std::vector<std::vector<int>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
+| photons_per_edep | std::vector<std::vector<double>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
+| Distance_average | std::vector<\double\> | Vector containing the mean weighted distance from each channel to the energy depositions in the event |
+| Angle_average | std::vector<\double\> | Vector containing the mean weighted angle from each channel to the energy depositions in the event |
+| GeneratedPhotons | int | Total number of photons generated during the event |
+| DetectedPhotons | int | Total number of photons detected during the event |
+| TotalEdep | double | Total energy deposited during the event |
+| event_x | double | Weighted mean of the X position of the energy depositions in the event |
+| event_y | double | Weighted mean of the Y position of the energy depositions in the event |
+| event_z | double | Weighted mean of the Z position of the energy depositions in the event |
+
+NB: All weighted magnitudes are weighted by the value of the energy deposition. 
 
 Analysis example
 ---------------
