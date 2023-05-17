@@ -195,8 +195,8 @@ After looping over all the hits, we will have an output root file containing the
 | Branch name                 |    Type                                     |  Description |             
 |-----------------------------|---------------------------------------------|--------------|  
 | eventID | int | ID of the event |
-| SavedPhotons | std::vector<std::vector<\int>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
-| photons_per_edep | std::vector<std::vector<\double>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
+| SavedPhotons | std::vector<std::vector<int\>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
+| photons_per_edep | std::vector<std::vector<double\>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
 | Distance_average | std::vector<double\> | Vector containing the mean weighted distance from each channel to the energy depositions in the event |
 | Angle_average | std::vector<double\> | Vector containing the mean weighted angle from each channel to the energy depositions in the event |
 | GeneratedPhotons | int | Total number of photons generated during the event |
