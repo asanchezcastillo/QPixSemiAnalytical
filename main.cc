@@ -116,9 +116,6 @@ int main(int argc, char **argv)
     std::vector<double> OpDetVisibilities;
     std::unique_ptr<SemiAnalyticalModel> semi;
     semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
-    //std::unique_ptr<PropagationTimeModel> PropTime;
-    //PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
-  
     unsigned long runID;
     std::vector<std::vector<double>> SavePhotons;
     
