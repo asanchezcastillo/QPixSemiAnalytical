@@ -55,8 +55,8 @@ Is is required to provide a "params.json" file containing all the relevant input
 | geometry_file | string | Name of the geometry file |
 | nOpDet | int | Number of optical channels |
 | vuv_absorption_length | double | LAr VUV absorption length (in cm) |
-| GH_params | std::vector< std::vector<\double\>> | GH parameters for each angle bin |
-| GH_border | std::vector< std::vector<\double\>> | GH border corrections for each angle bin |
+| GH_params | std::vector< std::vector<double\>> | GH parameters for each angle bin |
+| GH_border | std::vector< std::vector<double\>> | GH border corrections for each angle bin |
 | DeltaAngle | int | Size of the angular bin for GH curves (in deg) |
 | StepSize | int | Step size to generate the timing parameterization functions (in cm) |
 | max_d | int | Maximum distance to generate the timing parameterization functions (in cm) |
@@ -67,13 +67,13 @@ Is is required to provide a "params.json" file containing all the relevant input
 | tau_fast | int | Fast scintillation timing constant (in ns) [EPL 91 (2010) 6, 62002, Europhys.Lett. 91 (2010) 6, 62002] |
 | tau_slow | int | Slow scintillation timing constant (in ns) [EPL 91 (2010) 6, 62002, Europhys.Lett. 91 (2010) 6, 62002] |
 | scint_ratio | double | Fast to slow scintillation ratio [[J Chem Phys vol 91 (1989) 1469]] |
-| Distances_landau | std::vector< std::vector<\double\>> | Vector containing the edges of bin distances for timimng parameterization (in cm) |
-| Mpv1 | std::vector< std::vector<\double\>> | Vector containing MPV of the first Landau (in ns) |
-| Norm_over_entries1 | std::vector< std::vector<\double\>> | Vector containing normalization of the first Landau (in ns) |
-| Width1 | std::vector< std::vector<\double\>> | Vector containing width of the first Landau (in ns) |
-| Mpv2 | std::vector< std::vector<\double\>> | Vector containing MPV of the second Landau (in ns) |
-| Norm_over_entries2 | std::vector< std::vector<\double\>> | Vector containing normalization of the second Landau |
-| Width2 | std::vector< std::vector<\double\>> | Vector containing width of the second Landau |
+| Distances_landau | std::vector< std::vector<double\>> | Vector containing the edges of bin distances for timimng parameterization (in cm) |
+| Mpv1 | std::vector< std::vector<double\>> | Vector containing MPV of the first Landau (in ns) |
+| Norm_over_entries1 | std::vector< std::vector<double\>> | Vector containing normalization of the first Landau (in ns) |
+| Width1 | std::vector< std::vector<double\>> | Vector containing width of the first Landau (in ns) |
+| Mpv2 | std::vector< std::vector<double\>> | Vector containing MPV of the second Landau (in ns) |
+| Norm_over_entries2 | std::vector< std::vector<double\>> | Vector containing normalization of the second Landau |
+| Width2 | std::vector< std::vector<double\>> | Vector containing width of the second Landau |
 | fWion | double | Ionization work function for LAr (in MeV) [Phys. Rev. D 91, 092007 (2015)] |
 | fWph | double | Ion+excitation work function for LAr (in MeV) [Nucl.Instrum.Meth.A 291 (1990), 617-620] |
 | fRecombA | double | LArQL model parameter https://cdcvs.fnal.gov/redmine/projects/larsoft/wiki/LArQL_algorithm |
@@ -112,14 +112,14 @@ It is also required a .root input file containing the information on the energy 
 | run | int | Number of run |
 | hit_start_x | std::vector<double\> | Initial X position of the G4Step (in cm)|
 | hit_end_x | std::vector<double\> | Final X position of the G4Step (in cm)|
-| hit_start_y | std::vector<\double\> | Initial Y position of the G4Step (in cm) |
-| hit_end_y | std::vector<\double\> | Final Y position of the G4Step (in cm) |
-| hit_start_z | std::vector<\double\> | Initial Z position of the G4Step (in cm) |
-| hit_end_z | std::vector<\double\> | Final Z position of the G4Step (in cm) |
-| hit_start_t | std::vector<\double\> | Initial time of the G4Step (in ns) |
-| hit_end_t | std::vector<\double\> | Final time of the G4Step (in ns) |
-| hit_energy_deposit | std::vector<\double\> | Magnitude of the energy deposition in the G4Step (in MeV) |
-| hit_length | std::vector<\double\> | Length of the G4Step (in cm) |
+| hit_start_y | std::vector<double\> | Initial Y position of the G4Step (in cm) |
+| hit_end_y | std::vector<double\> | Final Y position of the G4Step (in cm) |
+| hit_start_z | std::vector<double\> | Initial Z position of the G4Step (in cm) |
+| hit_end_z | std::vector<double\> | Final Z position of the G4Step (in cm) |
+| hit_start_t | std::vector<double\> | Initial time of the G4Step (in ns) |
+| hit_end_t | std::vector<double\> | Final time of the G4Step (in ns) |
+| hit_energy_deposit | std::vector<double\> | Magnitude of the energy deposition in the G4Step (in MeV) |
+| hit_length | std::vector<double\> | Length of the G4Step (in cm) |
 
 Running the code
 ---------------
@@ -197,8 +197,8 @@ After looping over all the hits, we will have an output root file containing the
 | eventID | int | ID of the event |
 | SavedPhotons | std::vector<std::vector<\int>> |The first dimension refers to each of the optical channels. The second dimension contains each time tick (ns) at which a photon is detected for that channel  |
 | photons_per_edep | std::vector<std::vector<\double>> |The first dimension refers to each of the optical channels. The second dimension contains the number of photons detected by that optical channel for each energy deposition |
-| Distance_average | std::vector<\double\> | Vector containing the mean weighted distance from each channel to the energy depositions in the event |
-| Angle_average | std::vector<\double\> | Vector containing the mean weighted angle from each channel to the energy depositions in the event |
+| Distance_average | std::vector<double\> | Vector containing the mean weighted distance from each channel to the energy depositions in the event |
+| Angle_average | std::vector<double\> | Vector containing the mean weighted angle from each channel to the energy depositions in the event |
 | GeneratedPhotons | int | Total number of photons generated during the event |
 | DetectedPhotons | int | Total number of photons detected during the event |
 | TotalEdep | double | Total energy deposited during the event |
