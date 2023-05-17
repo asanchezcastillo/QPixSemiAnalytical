@@ -68,12 +68,12 @@ Is is required to provide a "params.json" file containing all the relevant input
 | tau_slow | int | Slow scintillation timing constant (in ns) [EPL 91 (2010) 6, 62002, Europhys.Lett. 91 (2010) 6, 62002] |
 | scint_ratio | double | Fast to slow scintillation ratio [[J Chem Phys vol 91 (1989) 1469]] |
 | Distances_landau | std::vector< std::vector<\double\>> | Vector containing the edges of bin distances for timimng parameterization (in cm) |
-| Mpv1 | std::vector< std::vector<\double\>> | Vector containing MPV of the first Landau (in cm) |
-| Norm_over_entries1 | std::vector< std::vector<\double\>> | Vector containing normalization of the first Landau (in cm) |
-| Width1 | std::vector< std::vector<\double\>> | Vector containing width of the first Landau (in cm) |
-| Mpv2 | std::vector< std::vector<\double\>> | Vector containing MPV of the second Landau (in cm) |
-| Norm_over_entries2 | std::vector< std::vector<\double\>> | Vector containing normalization of the second Landau (in cm) |
-| Width2 | std::vector< std::vector<\double\>> | Vector containing width of the second Landau (in cm) |
+| Mpv1 | std::vector< std::vector<\double\>> | Vector containing MPV of the first Landau (in ns) |
+| Norm_over_entries1 | std::vector< std::vector<\double\>> | Vector containing normalization of the first Landau (in ns) |
+| Width1 | std::vector< std::vector<\double\>> | Vector containing width of the first Landau (in ns) |
+| Mpv2 | std::vector< std::vector<\double\>> | Vector containing MPV of the second Landau (in ns) |
+| Norm_over_entries2 | std::vector< std::vector<\double\>> | Vector containing normalization of the second Landau |
+| Width2 | std::vector< std::vector<\double\>> | Vector containing width of the second Landau |
 | fWion | double | Ionization work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
 | fWph | double | Ion+excitation work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
 | fRecombA | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
@@ -208,4 +208,4 @@ NB: All weighted magnitudes are weighted by the value of the energy deposition.
 
 Analysis example
 ---------------
-An example on how to analyze the output of the simulation can be found in a Jupyter Notebook under the Analysis folder. This folder contains an output file (Output.root) obtained for a one APA Dune-HD-like detector containing 960 pixels (24 in the beam direction and 40 in the Y direction). The output of the analysis notebook is an animation representing the number of photons detected by each pixel for each time tick (ns).
+An basic example on how to analyze the output of the simulation can be found in a Jupyter Notebook under the Analysis folder.

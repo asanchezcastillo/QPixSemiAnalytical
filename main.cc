@@ -121,8 +121,6 @@ int main(int argc, char **argv)
   
     unsigned long runID;
     std::vector<std::vector<double>> SavePhotons;
-    std::vector<std::vector<double>> SavePhotons_generation;
-    std::vector<std::vector<double>> SavePhotons_transport;
     
     for (size_t nRun = 0; nRun < nMaxEvents; nRun++)
     {    
@@ -130,18 +128,12 @@ int main(int argc, char **argv)
       unsigned int generated_counter=0;
       unsigned int nPhotons=0;
       photonHitCollection.resize(fNOpChannels);
-      photonHitCollection_generation.resize(fNOpChannels);
-      photonHitCollection_transport.resize(fNOpChannels);
       runID=nRun;
       for (size_t i = 0; i < fNOpChannels; ++i)
       {
       photonHitCollection[i].OpChannel = i;
-      photonHitCollection_generation[i].OpChannel = i;
-      photonHitCollection_transport[i].OpChannel = i;
       }
       SavePhotons.resize(fNOpChannels);
-      SavePhotons_generation.resize(fNOpChannels);
-      SavePhotons_transport.resize(fNOpChannels);
       rfm->GetEvent(nRun);  
         
       // Reading root file information.
@@ -210,15 +202,13 @@ int main(int argc, char **argv)
       SemiAnalyticalModel::Point_t ScintPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
       semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
       double nphot=Edep->Energy()*24000; // Number of photons computed from a constant LY. To be replaced with LArQL. 
-  
       generated_counter = generated_counter + nphot;
       cum_edep+=Edep->Energy();
       double sum_of_elems=0;
       for(int i=0; i<OpDetVisibilities.size(); i++)
       sum_of_elems += OpDetVisibilities[i];
       semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot);
-
-
+      
       for (int channel = 0 ; channel< DetectedNum.size() ; channel++)
         {
         int n_detected = DetectedNum.at(channel);
@@ -237,11 +227,7 @@ int main(int argc, char **argv)
           {
           int time=0; 
           time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+ PropTime->ScintTime() );
-          double time_generation = ((Edep->TimeStart() + Edep->TimeEnd())/2 ) + PropTime->ScintTime();
-          double time_transport = transport_time[i];
           ++photonHitCollection[channel].DetectedPhotons[time];
-          ++photonHitCollection_generation[channel].DetectedPhotons[time_generation];
-          ++photonHitCollection_transport[channel].DetectedPhotons[time_transport];
           }
         }// end channels loop
     }// end hits loop 
@@ -255,31 +241,9 @@ int main(int argc, char **argv)
         }
       }
     }
-    // Save generation times
-    for ( auto & fPhotons : (photonHitCollection_generation) )
-    {
-      int opChannel = fPhotons.OpChannel;
-      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-        for(int i = 0; i < fPhotons->second ; i++){
-        SavePhotons_generation.at(opChannel).push_back(fPhotons->first);
-        }
-      }
-    }
-    // Save transport times
-    for ( auto & fPhotons : (photonHitCollection_transport) )
-    {
-      int opChannel = fPhotons.OpChannel;
-      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-        for(int i = 0; i < fPhotons->second ; i++){
-        SavePhotons_transport.at(opChannel).push_back(fPhotons->first);
-        }
-      }
-    }
-      //Loop to compute the weighted mean for each optical channel
-      std::vector<double> *distance_average = new std::vector<double>();
-      std::vector<double> *angle_average = new std::vector<double>();
+    //Loop to compute the weighted mean for each optical channel
+    std::vector<double> *distance_average = new std::vector<double>();
+    std::vector<double> *angle_average = new std::vector<double>();
     for (int channel=0; channel<fNOpChannels; channel++) 
     {
       double weighted_distance=0;
@@ -301,8 +265,6 @@ int main(int argc, char **argv)
     }
     OutputTree->Branch("eventID", &runID);
     OutputTree->Branch("SavedPhotons",&SavePhotons);
-    OutputTree->Branch("SavedPhotons_generation",&SavePhotons_generation);
-    OutputTree->Branch("SavedPhotons_transport",&SavePhotons_transport);
     OutputTree->Branch("GeneratedPhotons",&generated_counter);
     OutputTree->Branch("DetectedPhotons",&nPhotons);
     OutputTree->Branch("TotalEdep", &cum_edep);
@@ -322,8 +284,6 @@ int main(int argc, char **argv)
     photonHitCollection_generation.clear();
     photonHitCollection_transport.clear();
     SavePhotons.clear();
-    SavePhotons_generation.clear();
-    SavePhotons_transport.clear();
     distance->clear();
     angle->clear();
     channels->clear();
