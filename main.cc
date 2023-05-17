@@ -1,11 +1,7 @@
 // SemiAnalyticalModel
 //  - fast optical simulation of scintillation photons using semi-analytical model.
-
-// March 2022 by A. Sánchez Castillo
-
-#include <iostream>
-
-
+// March 2022 by A. Sánchez Castillo 
+// asanchezcastillo@ugr.es
 
 #include <iostream>
 #include <vector>
@@ -251,37 +247,36 @@ int main(int argc, char **argv)
     }// end hits loop 
     for ( auto & fPhotons : (photonHitCollection) )
     {
-    int opChannel = fPhotons.OpChannel;
-    std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-    for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-      for(int i = 0; i < fPhotons->second ; i++){
-      SavePhotons.at(opChannel).push_back(fPhotons->first);
+      int opChannel = fPhotons.OpChannel;
+      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
+      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
+        for(int i = 0; i < fPhotons->second ; i++){
+        SavePhotons.at(opChannel).push_back(fPhotons->first);
+        }
       }
-    }
     }
     // Save generation times
     for ( auto & fPhotons : (photonHitCollection_generation) )
     {
-    int opChannel = fPhotons.OpChannel;
-    std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-    for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-      for(int i = 0; i < fPhotons->second ; i++){
-      SavePhotons_generation.at(opChannel).push_back(fPhotons->first);
+      int opChannel = fPhotons.OpChannel;
+      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
+      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
+        for(int i = 0; i < fPhotons->second ; i++){
+        SavePhotons_generation.at(opChannel).push_back(fPhotons->first);
+        }
       }
-    }
     }
     // Save transport times
     for ( auto & fPhotons : (photonHitCollection_transport) )
     {
-    int opChannel = fPhotons.OpChannel;
-    std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-    for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-      for(int i = 0; i < fPhotons->second ; i++){
-      SavePhotons_transport.at(opChannel).push_back(fPhotons->first);
+      int opChannel = fPhotons.OpChannel;
+      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
+      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
+        for(int i = 0; i < fPhotons->second ; i++){
+        SavePhotons_transport.at(opChannel).push_back(fPhotons->first);
+        }
       }
     }
-    }
-
       //Loop to compute the weighted mean for each optical channel
       std::vector<double> *distance_average = new std::vector<double>();
       std::vector<double> *angle_average = new std::vector<double>();
