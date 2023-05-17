@@ -55,8 +55,8 @@ Is is required to provide a "params.json" file containing all the relevant input
 | geometry_file | string | Name of the geometry file |
 | nOpDet | int | Number of optical channels |
 | vuv_absorption_length | double | LAr VUV absorption length (in cm) |
-| GH_params | std::vector< std::vector<\double\> > | GH parameters for each angle bin |
-| GH_border | std::vector< std::vector<\double\> > | GH border corrections for each angle bin |
+| GH_params | std::vector< std::vector<\double\>> | GH parameters for each angle bin |
+| GH_border | std::vector< std::vector<\double\>> | GH border corrections for each angle bin |
 | DeltaAngle | int | Size of the angular bin for GH curves (in deg) |
 | StepSize | int | Step size to generate the timing parameterization functions (in cm) |
 | max_d | int | Maximum distance to generate the timing parameterization functions (in cm) |
@@ -67,13 +67,13 @@ Is is required to provide a "params.json" file containing all the relevant input
 | tau_fast | int | Fast scintillation timing constant (in ns) [EPL 91 (2010) 6, 62002, Europhys.Lett. 91 (2010) 6, 62002] |
 | tau_slow | int | Slow scintillation timing constant (in ns) [EPL 91 (2010) 6, 62002, Europhys.Lett. 91 (2010) 6, 62002] |
 | scint_ratio | double | Fast to slow scintillation ratio [[J Chem Phys vol 91 (1989) 1469]] |
-| Distances_landau | std::vector< std::vector<\double\> > | Vector containing the edges of bin distances for timimng parameterization (in cm) |
-| Mpv1 | std::vector< std::vector<\double\> > | Vector containing MPV of the first Landau (in cm) |
-| Norm_over_entries1 | std::vector< std::vector<\double\> > | Vector containing normalization of the first Landau (in cm) |
-| Width1 | std::vector< std::vector<\double\> > | Vector containing width of the first Landau (in cm) |
-| Mpv2 | std::vector< std::vector<\double\> > | Vector containing MPV of the second Landau (in cm) |
-| Norm_over_entries2 | std::vector< std::vector<\double\> > | Vector containing normalization of the second Landau (in cm) |
-| Width2 | std::vector< std::vector<\double\> > | Vector containing width of the second Landau (in cm) |
+| Distances_landau | std::vector< std::vector<\double\>> | Vector containing the edges of bin distances for timimng parameterization (in cm) |
+| Mpv1 | std::vector< std::vector<\double\>> | Vector containing MPV of the first Landau (in cm) |
+| Norm_over_entries1 | std::vector< std::vector<\double\>> | Vector containing normalization of the first Landau (in cm) |
+| Width1 | std::vector< std::vector<\double\>> | Vector containing width of the first Landau (in cm) |
+| Mpv2 | std::vector< std::vector<\double\>> | Vector containing MPV of the second Landau (in cm) |
+| Norm_over_entries2 | std::vector< std::vector<\double\>> | Vector containing normalization of the second Landau (in cm) |
+| Width2 | std::vector< std::vector<\double\>> | Vector containing width of the second Landau (in cm) |
 | fWion | double | Ionization work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
 | fWph | double | Ion+excitation work function for LAr (in MeV) [F. Marinho et al 2022 JINST 17 C07009] |
 | fRecombA | double | LArQL model parameter [F. Marinho et al 2022 JINST 17 C07009] |
@@ -92,33 +92,36 @@ The references included are for the parameter contained in this repository. This
 Geometry file
 ---------------
 It is required to provide a geometry file under the build directory containing the optical detector's IDs, their central positions and their heights and widths. The information should be ordered in colums as follows:
-```
-ID XPosition YPosition ZPosition Heigh Width
-0  <xpos_0>  <ypos_0>  <zpos_0>    H.    W.
-1  <xpos_1>  <ypos_1>  <zpos_1>    H.    W.   
-.
-.
-.
-```
 
-The first raw is only for ilustration purposes and should not be included in the actual geometry file. The name of the geometry file has to be provided in the parameters file "params.json". At the moment, the simulation admits two different configurations: one with the detectors in the XZ plane, corresponding to a DUNE-VD-like geometry and another with the detectors in the YZ plane, as in the DUNE-HD geometry.
+
+|    ID    |      X Position      |      Y Position      |       Z Position      |      Height      |      Width      |             
+|----------|----------------------|----------------------|-----------------------|------------------|-----------------|  
+| 0 | <xpos_0> | <ypos_0> | <ypos_0> | Height_0 | Width_0 |
+| 1 | <xpos_1> | <ypos_1> | <ypos_1> | Height_1 | Width_1 |
+| 2 | <xpos_2> | <ypos_2> | <ypos_2> | Height_2 | Width_2 |
+| ... | ... | ... | ... | ... | ... |
+| n | <xpos_n> | <ypos_n> | <ypos_n> | Height_n | Width_n |
+
+The name of the geometry file has to be provided in the parameters file "params.json". At the moment, the simulation admits two different configurations: one with the detectors in the XZ plane, corresponding to a DUNE-VD-like geometry and another with the detectors in the YZ plane, as in the DUNE-HD geometry.
 
 Root input files
 ---------------
 It is also required a .root input file containing the information on the energy depositions of the events that are to be simulated. The file should contain an "event" tree with the following branches:
-```c++
-input_tree->SetBranchAddress("run",&run);
-input_tree->SetBranchAddress("hit_start_x",&hitX_start);
-input_tree->SetBranchAddress("hit_end_x",&hitX_end);
-input_tree->SetBranchAddress("hit_start_y",&hitY_start);
-input_tree->SetBranchAddress("hit_end_y",&hitY_end);
-input_tree->SetBranchAddress("hit_start_z",&hitZ_start);
-input_tree->SetBranchAddress("hit_end_z",&hitZ_end);
-input_tree->SetBranchAddress("hit_energy_deposit",&edep);
-input_tree->SetBranchAddress("hit_start_t",&time_start);
-input_tree->SetBranchAddress("hit_end_t",&time_end);
-input_tree->SetBranchAddress("hit_length",&length);
-```
+
+
+| Branch name                 |    Type                                     |  Description |             
+|-----------------------------|---------------------------------------------|--------------|  
+| run | int | Number of run |
+| hit_start_x | std::vector<\double\> | Initial X position of the G4Step (in cm)|
+| hit_end_x | std::vector<\double\> | Final X position of the G4Step (in cm)|
+| hit_start_y | std::vector<\double\> | Initial Y position of the G4Step (in cm) |
+| hit_end_y | std::vector<\double\> | Final Y position of the G4Step (in cm) |
+| hit_start_z | std::vector<\double\> | Initial Z position of the G4Step (in cm) |
+| hit_end_z | std::vector<\double\> | Final Z position of the G4Step (in cm) |
+| hit_start_t | std::vector<\double\> | Initial time of the G4Step (in ns) |
+| hit_end_t | std::vector<\double\> | Final time of the G4Step (in ns) |
+| hit_energy_deposit | std::vector<\double\> | Magnitude of the energy deposition in the G4Step (in MeV) |
+| hit_length | std::vector<\double\> | Length of the G4Step (in cm) |
 
 Running the code
 ---------------
