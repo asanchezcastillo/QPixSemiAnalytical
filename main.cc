@@ -109,8 +109,6 @@ int main(int argc, char **argv)
     unsigned int fNOpChannels = OpParams["nOpDet"];
     std::vector<int> DetectedNum(fNOpChannels);
     std::vector<double> OpDetVisibilities;
-    std::unique_ptr<SemiAnalyticalModel> semi;
-    semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
     unsigned long runID;
     std::vector<std::vector<double>> SavePhotons;
     
