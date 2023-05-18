@@ -273,8 +273,6 @@ int main(int argc, char **argv)
     OutputFile->cd();
     rfm->EventReset();
     photonHitCollection.clear();
-    photonHitCollection_generation.clear();
-    photonHitCollection_transport.clear();
     SavePhotons.clear();
     distance->clear();
     angle->clear();
