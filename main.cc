@@ -72,6 +72,8 @@ int main(int argc, char **argv)
 
   std::unique_ptr<PropagationTimeModel> PropTime;
   PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
+  std::unique_ptr<SemiAnalyticalModel> semi;
+  semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
 
   for(int n=0; n<n_files; n++)
   {  
@@ -104,13 +106,6 @@ int main(int argc, char **argv)
     // Initialize PhotonHitCollection to store simulated hits.
     std::unique_ptr<std::vector<SimPhotons>> photonCol{new std::vector<SimPhotons>{}};
     auto& photonHitCollection{*photonCol};
-
-    std::unique_ptr<std::vector<SimPhotons>> photonCol_generation{new std::vector<SimPhotons>{}}; // To study generation times
-    auto& photonHitCollection_generation{*photonCol_generation};  // To study generation times
-
-    std::unique_ptr<std::vector<SimPhotons>> photonCol_transport{new std::vector<SimPhotons>{}}; // To study transport times
-    auto& photonHitCollection_transport{*photonCol_transport};  // To study transport times
-
     unsigned int fNOpChannels = OpParams["nOpDet"];
     std::vector<int> DetectedNum(fNOpChannels);
     std::vector<double> OpDetVisibilities;
