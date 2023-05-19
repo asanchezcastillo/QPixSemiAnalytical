@@ -137,7 +137,6 @@ void PropagationTimeModel::Initialization(json OpParams)
     
     for (size_t angle_bin = 0; angle_bin < num_angles; ++angle_bin) {
       for (size_t index = 0; index < num_params; ++index) {
-       // std::cout << "Generating angle bin "<< angle_bin <<" and index " << index << std::endl;
         generateParam(index, angle_bin);
 
       }
@@ -215,9 +214,6 @@ void PropagationTimeModel::getVUVTimes(std::vector<double>& arrivalTimes,
                                        const double distance,
                                        const size_t angle_bin)
 {
-    if(arrivalTimes.size()>100) std::cout << "Distance : " << distance << " and the number of photons is: " << arrivalTimes.size() << std::endl;
-
-
   if (distance < fmin_d) {
     // times are fixed shift i.e. direct path only
     double t_prop_correction = distance / fvuv_vgroup_mean;
@@ -240,11 +236,8 @@ void PropagationTimeModel::getVUVTimes(std::vector<double>& arrivalTimes,
     int index = std::round((distance - fmin_d) / fstep_size);
     // randomly sample parameterisation for each
     for (size_t i = 0; i < arrivalTimes.size(); ++i) {
-    // std::cout << "Angle bin" << angle_bin << std::endl;
-    // std::cout << "index " << index << std::endl;
       arrivalTimes[i] = fVUV_timing[angle_bin][index].GetRandom(fVUV_min[angle_bin][index],
                                                                 fVUV_max[angle_bin][index]);
-     //std::cout << "After Sampling "<< std::endl;
      }
   }
 }
