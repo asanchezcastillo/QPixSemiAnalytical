@@ -137,6 +137,7 @@ int main(int argc, char **argv)
       std::vector<double> *time_end = rfm->GetTimeEnd();
       std::vector<double> *edep = rfm->GetEdep();
       std::vector<double> *length = rfm->GetLength();
+      rfm->CloseInput();
 
       //Compute event information (weighted drift distance)
       double event_x=0;
@@ -281,6 +282,7 @@ int main(int argc, char **argv)
     }// end event loop
     OutputFile->Write();
     OutputFile->Close();
+    delete OutputFile;
   }
   return 0;
 }

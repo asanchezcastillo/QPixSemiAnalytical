@@ -31,7 +31,7 @@ void ROOTFileManager::Initialize(char* inputFileName, char* outputFileName)
     //Input file:
     input_file = new TFile(inputFileName);
     input_tree = (TTree*)input_file->Get("event");
-    TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");
+    //TFile *OutputFile = TFile::Open(outputFileName, "RECREATE");  /TO BE DONE: USE RFM TO FILL OUTPUT FILE
     set_branch_addresses(input_tree);
 }
 
@@ -97,6 +97,15 @@ void ROOTFileManager::GetEvent(int nRun)
  int ROOTFileManager::NEntries()
  {
     return input_tree->GetEntries();
+
+ }
+
+ //--------------------------------------------------------------------------
+// Close input file
+ void ROOTFileManager::CloseInput()
+ {
+    input_file->Close();
+    delete input_file;
 
  }
 

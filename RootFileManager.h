@@ -31,6 +31,7 @@ class ROOTFileManager {
         void GetEvent(int);
         void EventReset();
         int NEntries();
+        void CloseInput();
         int GetRun(){return run;}
         std::vector<double> * GetXStart(){return hitX_start;}
         std::vector<double> * GetXEnd(){return hitX_end;}
