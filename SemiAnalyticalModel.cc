@@ -351,16 +351,13 @@ void SemiAnalyticalModel::detectedNumPhotons(std::vector<int>& DetectedNumPhoton
                                       const int NumPhotons) const
 {
 
+  TRandom *random = new TRandom3(0);
+
   for (size_t i = 0; i < OpDetVisibilities.size(); ++i) {
-
-   TRandom *random = new TRandom(0);
-
    Double_t seed = OpDetVisibilities[i]*(double)NumPhotons;
-
    DetectedNumPhotons[i] = random->Poisson(seed);
-
-   delete random;
   }
+  delete random;
 }
 
 

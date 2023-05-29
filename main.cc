@@ -70,10 +70,11 @@ int main(int argc, char **argv)
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
 
-  std::unique_ptr<PropagationTimeModel> PropTime;
-  PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
   std::unique_ptr<SemiAnalyticalModel> semi;
   semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
+  std::unique_ptr<PropagationTimeModel> PropTime;
+  PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
+
 
   for(int n=0; n<n_files; n++)
   {  
@@ -192,7 +193,7 @@ int main(int argc, char **argv)
       Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, EndPoint, time_start->at(nHit), time_end->at(nHit) ,length->at(nHit));
       SemiAnalyticalModel::Point_t ScintPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
       semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
-      double nphot=Edep->Energy()*24000; // Number of photons computed from a constant LY. To be replaced with LArQL. 
+      const int nphot=Edep->Energy()*24000; // Number of photons computed from a constant LY. To be replaced with LArQL. 
       generated_counter = generated_counter + nphot;
       cum_edep+=Edep->Energy();
       double sum_of_elems=0;
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < n_detected; ++i)
           {
           int time=0; 
-          time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+ PropTime->ScintTime() );
+          time =  static_cast<int>(((Edep->TimeStart() + Edep->TimeEnd())/2) + transport_time[i]+ PropTime->ScintTime());
           ++photonHitCollection[channel].DetectedPhotons[time];
           }
         }// end channels loop

@@ -11,7 +11,7 @@
 #include <cmath>
 #include <string>
 #include <nlohmann/json.hpp>
-#include "TRandom.h"
+#include "TRandom3.h"
 
 using json = nlohmann::json;
 
