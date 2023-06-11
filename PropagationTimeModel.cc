@@ -138,7 +138,6 @@ void PropagationTimeModel::Initialization(json OpParams)
     for (size_t angle_bin = 0; angle_bin < num_angles; ++angle_bin) {
       for (size_t index = 0; index < num_params; ++index) {
         generateParam(index, angle_bin);
-
       }
     }
 
