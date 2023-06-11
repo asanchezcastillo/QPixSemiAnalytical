@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-#set(CMAKE_C_COMPILER "/usr/local/bin/gcc-12")
-#set(CMAKE_CXX_COMPILER "/usr/local/bin/g++-12")
-
 project(Semi)
 
 # Locate the ROOT package and define a number of useful targets and variables.
