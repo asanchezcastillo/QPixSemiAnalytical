@@ -69,12 +69,10 @@ int main(int argc, char **argv)
   cout<< "Number of input files: "<<n_files<<endl;
   std::ifstream f("params.json");
   json OpParams = json::parse(f);
-
-  std::unique_ptr<SemiAnalyticalModel> semi;
-  semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
   std::unique_ptr<PropagationTimeModel> PropTime;
   PropTime = std::make_unique<PropagationTimeModel>(OpParams); //Initialize PropagationTimeModel object
-
+  std::unique_ptr<SemiAnalyticalModel> semi;
+  semi = std::make_unique<SemiAnalyticalModel>(OpParams); //Initialize SemiAnalyticalModel object
 
   for(int n=0; n<n_files; n++)
   {  
@@ -86,11 +84,31 @@ int main(int argc, char **argv)
 
     std::unique_ptr<ROOTFileManager> rfm;
     std::cout << "Input file name: " << inputFile << " Output file name " << outputFile << std::endl;
-    rfm = std::make_unique<ROOTFileManager>((char*)inputFile, (char*)outputFile); //Initialize rfm object
+
+    // Get information on the inital particle
+
+    rfm = std::make_unique<ROOTFileManager>((char*)inputFile, (char*)outputFile, "InitialParticle"); //Initialize rfm object with the intial particle information
+    rfm->GetEvent();
+    std::vector<double> * InitialParticleEnergy = rfm->GetInitialEnergy(); 
+    std::vector<double> * InteractionTime = rfm->GetInteractionTime(); 
+    std::vector<int> InitialParticlePDG = rfm->GetInitialPDG();
+
+    // Get information on the primary particle
+
+    rfm = std::make_unique<ROOTFileManager>((char*)inputFile, (char*)outputFile, "PrimaryParticle"); //Initialize rfm object with the primary particle information
+    rfm->GetEvent();
+    std::vector<double> * PrimaryParticleEnergy = rfm->GetPrimaryEnergy(); 
+    std::vector<int> PrimaryParticlePDG = rfm->GetPrimaryPDG();
+    std::vector<double> * PrimaryParticlePx = rfm->GetPrimaryPx();
+    std::vector<double> * PrimaryParticlePy = rfm->GetPrimaryPy();
+    std::vector<double> * PrimaryParticlePz = rfm->GetPrimaryPz();
+    // Get information on the input to the event
+
+    rfm = std::make_unique<ROOTFileManager>((char*)inputFile, (char*)outputFile, "Hits"); //Initialize rfm object with hits information
 
     if(nMaxEvents==0)
     {
-      nMaxEvents = rfm->NEntries();
+      nMaxEvents = rfm->NEntries(); //Max number of events is the number of entries in our input tree. Each entry contains a vector with all the information on the energy depositions. 
     }
     else
     {
@@ -126,7 +144,6 @@ int main(int argc, char **argv)
       }
       SavePhotons.resize(fNOpChannels);
       rfm->GetEvent(nRun);  
-        
       // Reading root file information.
       std::vector<double> *hitX_start = rfm->GetXStart();
       std::vector<double> *hitX_end = rfm->GetXEnd();
@@ -139,7 +156,6 @@ int main(int argc, char **argv)
       std::vector<double> *edep = rfm->GetEdep();
       std::vector<double> *length = rfm->GetLength();
       rfm->CloseInput();
-
       //Compute event information (weighted drift distance)
       double event_x=0;
       double event_y=0;
@@ -172,18 +188,21 @@ int main(int argc, char **argv)
   
       //Start counting time
       std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      TTree *OutputTree = new TTree("event", "event");
+      TTree *PhotonsTree = new TTree("Photons", "Photons"); // Tree containing photons information
+      TTree *EventTree = new TTree("Event", "Event"); // Tree containing information on the event 
+      TTree *GeometryTree = new TTree("Geometry", "Geometry"); // Tree containing information on the geoemtry of the event
+
       std::cout << "Reading event number: " << nRun << std::endl;
       std::vector<std::vector<double>> *distance = new std::vector<std::vector<double>>();
       std::vector<std::vector<double>> *angle = new std::vector<std::vector<double>>();
       std::vector<std::vector<double>> *photons_per_edep = new std::vector<std::vector<double>>();
       std::vector<std::vector<double>> *channels = new std::vector<std::vector<double>>();
-
+      std::vector<std::vector<double>> *visibility_vector = new std::vector<std::vector<double>>();
       distance->resize(fNOpChannels);
       angle->resize(fNOpChannels);
       photons_per_edep->resize(fNOpChannels);
       channels->resize(fNOpChannels);
-
+      visibility_vector->resize(hitX_start->size());
       for (size_t nHit = 0; nHit < hitX_start->size(); nHit++ )
       {
       // Initialize the energy deposition object with its StartPoint and the EndPoint:
@@ -193,14 +212,14 @@ int main(int argc, char **argv)
       Edep = std::make_unique<EnergyDeposition>(OpParams, edep->at(nHit), StartPoint, EndPoint, time_start->at(nHit), time_end->at(nHit) ,length->at(nHit));
       SemiAnalyticalModel::Point_t ScintPoint{hitX_start->at(nHit), hitY_start->at(nHit), hitZ_start->at(nHit)};
       semi->detectedDirectVisibilities(OpDetVisibilities, ScintPoint);
-      const int nphot=Edep->Energy()*24000; // Number of photons computed from a constant LY. To be replaced with LArQL. 
-      generated_counter = generated_counter + nphot;
+      const int nphot= round(Edep->Energy()*24000); // Number of photons computed from a constant LY. To be replaced with LArQL. 
+      generated_counter = generated_counter+nphot;
       cum_edep+=Edep->Energy();
-      double sum_of_elems=0;
-      for(int i=0; i<OpDetVisibilities.size(); i++)
-      sum_of_elems += OpDetVisibilities[i];
       semi->detectedNumPhotons(DetectedNum, OpDetVisibilities, nphot);
-      
+      for(int channel =0; channel< fNOpChannels; channel++)
+      {
+        visibility_vector->at(nHit).push_back(OpDetVisibilities.at(channel));
+      }
       for (int channel = 0 ; channel< DetectedNum.size() ; channel++)
         {
         int n_detected = DetectedNum.at(channel);
@@ -218,68 +237,96 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < n_detected; ++i)
           {
           int time=0; 
-          time =  static_cast<int>(((Edep->TimeStart() + Edep->TimeEnd())/2) + transport_time[i]+ PropTime->ScintTime());
+          time =  static_cast<int>( ( (Edep->TimeStart() + Edep->TimeEnd())/2 ) + transport_time[i]+ PropTime->ScintTime() );
           ++photonHitCollection[channel].DetectedPhotons[time];
           }
         }// end channels loop
-    }// end hits loop 
-    for ( auto & fPhotons : (photonHitCollection) )
-    {
-      int opChannel = fPhotons.OpChannel;
-      std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
-      for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
-        for(int i = 0; i < fPhotons->second ; i++){
-        SavePhotons.at(opChannel).push_back(fPhotons->first);
+      }// end hits loop 
+      for ( auto & fPhotons : (photonHitCollection) )
+      {
+        int opChannel = fPhotons.OpChannel;
+        std::map<int, int> fPhotons_map = fPhotons.DetectedPhotons;
+        for (auto fPhotons = fPhotons_map.begin(); fPhotons!= fPhotons_map.end(); fPhotons++){       
+          for(int i = 0; i < fPhotons->second ; i++)
+          {
+          SavePhotons.at(opChannel).push_back(fPhotons->first);
+          }
         }
       }
-    }
-    //Loop to compute the weighted mean for each optical channel
-    std::vector<double> *distance_average = new std::vector<double>();
-    std::vector<double> *angle_average = new std::vector<double>();
-    for (int channel=0; channel<fNOpChannels; channel++) 
-    {
-      double weighted_distance=0;
-      double weight_distance=0;
-      double weighted_angle=0;
-      double weight_angle=0;
-      double sum = 0;
-      double weight=0;
-        for (int j=0; j<distance->at(channel).size(); j++)
+      //Loop to compute the weighted mean for each optical channel
+      std::vector<double> *distance_average = new std::vector<double>();
+      std::vector<double> *angle_average = new std::vector<double>();
+      for (int channel=0; channel<fNOpChannels; channel++) 
+      {
+        double weighted_distance=0;
+        double weight_distance=0;
+        double weighted_angle=0;
+        double weight_angle=0;
+        double sum = 0;
+        double weight=0;
+          for (int j=0; j<distance->at(channel).size(); j++)
+          {
+              weight_distance = weight_distance + distance->at(channel).at(j) * photons_per_edep->at(channel).at(j);
+              weight_angle = weight_angle + angle->at(channel).at(j) * photons_per_edep->at(channel).at(j);
+              sum = sum + photons_per_edep->at(channel).at(j);
+          }
+        weighted_distance = weight_distance/sum;
+        weighted_angle = weight_angle/sum;  
+        distance_average->push_back(weighted_distance);
+        angle_average->push_back(weighted_angle);
+      }
+      std::vector<double> *visibility_average = new std::vector<double>();
+      for (int channel=0; channel<fNOpChannels; channel++)
+      {
+        double weighted_visibility=0;
+        double weight_visibility=0;
+        double sum = 0;
+        for (int j = 0; j<edep->size(); j++ )
         {
-            weight_distance = weight_distance + distance->at(channel).at(j) * photons_per_edep->at(channel).at(j);
-            weight_angle = weight_angle + angle->at(channel).at(j) * photons_per_edep->at(channel).at(j);
-            sum = sum + photons_per_edep->at(channel).at(j);
+          weight_visibility = weight_visibility + visibility_vector->at(j).at(channel) * edep->at(j);
+          sum = sum + edep->at(j);
         }
-      weighted_distance = weight_distance/sum;
-      weighted_angle = weight_angle/sum;  
-      distance_average->push_back(weighted_distance);
-      angle_average->push_back(weighted_angle);
-    }
-    OutputTree->Branch("eventID", &runID);
-    OutputTree->Branch("SavedPhotons",&SavePhotons);
-    OutputTree->Branch("GeneratedPhotons",&generated_counter);
-    OutputTree->Branch("DetectedPhotons",&nPhotons);
-    OutputTree->Branch("TotalEdep", &cum_edep);
-    OutputTree->Branch("Distance", &distance);
-    OutputTree->Branch("Angle", &angle);
-    OutputTree->Branch("Distance_average", &distance_average);
-    OutputTree->Branch("Angle_average", &angle_average);
-    OutputTree->Branch("Channels", &channels);
-    OutputTree->Branch("photons_per_edep", &photons_per_edep);
-    OutputTree->Branch("event_x", &event_x);
-    OutputTree->Branch("event_y", &event_y);
-    OutputTree->Branch("event_z", &event_z);
-    OutputTree->Fill();
-    OutputFile->cd();
-    rfm->EventReset();
-    photonHitCollection.clear();
-    SavePhotons.clear();
-    distance->clear();
-    angle->clear();
-    channels->clear();
-    photons_per_edep->clear();
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Event: " << nRun <<" Elapsed time: " <<  std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
+        weighted_visibility=weight_visibility/sum;
+        visibility_average->push_back(weighted_visibility);
+      }
+
+      std::cout << "The sum of all the visbilities is: " << accumulate(visibility_average->begin(),visibility_average->end(),0.000);
+      PhotonsTree->Branch("eventID", &runID);
+      PhotonsTree->Branch("SavedPhotons",&SavePhotons);
+      PhotonsTree->Branch("GeneratedPhotons",&generated_counter);
+      PhotonsTree->Branch("DetectedPhotons",&nPhotons);
+      PhotonsTree->Branch("PhotonsPerEdep", &photons_per_edep);
+      GeometryTree->Branch("Distance", &distance);
+      GeometryTree->Branch("Angle", &angle);
+      GeometryTree->Branch("DistanceAverage", &distance_average);
+      GeometryTree->Branch("AngleAverage", &angle_average);
+      GeometryTree->Branch("Channels", &channels);
+      GeometryTree->Branch("VisibilityVector", &visibility_average);
+      EventTree->Branch("EventMeanX", &event_x);
+      EventTree->Branch("EventMeanY", &event_y);
+      EventTree->Branch("EventMeanZ", &event_z);
+      EventTree->Branch("InitialParticleEnergy", &InitialParticleEnergy);
+      EventTree->Branch("TotalEdep", &cum_edep);
+      EventTree->Branch("InitialParticlePDG", &InitialParticlePDG);
+      EventTree->Branch("InteractionTime", &InteractionTime);
+      EventTree->Branch("PrimaryParticleEnergy", &PrimaryParticleEnergy);
+      EventTree->Branch("PrimaryParticlePDG", &PrimaryParticlePDG);
+      EventTree->Branch("PrimaryParticlePx", &PrimaryParticlePx);
+      EventTree->Branch("PrimaryParticlePy", &PrimaryParticlePy);
+      EventTree->Branch("PrimaryParticlePz", &PrimaryParticlePz);
+      PhotonsTree->Fill();
+      GeometryTree->Fill();
+      EventTree->Fill();
+      OutputFile->cd();
+      rfm->EventReset();
+      photonHitCollection.clear();
+      SavePhotons.clear();
+      distance->clear();
+      angle->clear();
+      channels->clear();
+      photons_per_edep->clear();
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+      std::cout << "Event: " << nRun <<" Elapsed time: " <<  std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000 << "[s]" << std::endl;
     }// end event loop
     OutputFile->Write();
     OutputFile->Close();

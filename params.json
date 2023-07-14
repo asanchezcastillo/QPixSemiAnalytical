@@ -19,7 +19,7 @@
   "min_d": 20,
   "VUVGroupMean": 13.5,
   "VUVGroupMax": 21.7194836278923,
-  "angle_bin_timing": 45,
+  "angle_bin_timing": 90,
   "tau_fast":6,
   "tau_slow":1300,
   "scint_ratio": 0.3,
