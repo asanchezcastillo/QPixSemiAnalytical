@@ -6,7 +6,7 @@
 //   * Creation date: 31 August 2020
 // -----------------------------------------------------------------------------
 
-#include "ROOTFileManager.h"
+#include "RootFileManager.h"
 
 // ROOT includes
 #include "TObject.h"
