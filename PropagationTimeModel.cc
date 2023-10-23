@@ -32,7 +32,12 @@ PropagationTimeModel::PropagationTimeModel(json OpParams)
   fmin_d{OpParams["min_d"]},
   tau_fast{OpParams["tau_fast"]},
   tau_slow{OpParams["tau_slow"]},
-  scint_ratio{OpParams["scint_ratio"]},
+  MuonScintYieldRatio{OpParams["MuonScintYieldRatio"]},
+  PionScintYieldRatio{OpParams["PionScintYieldRatio"]},
+  ElectronScintYieldRatio{OpParams["ElectronScintYieldRatio"]},
+  KaonScintYieldRatio{OpParams["KaonScintYieldRatio"]},
+  ProtonScintYieldRatio{OpParams["ProtonScintYieldRatio"]},
+  AlphaScintYieldRatio{OpParams["AlphaScintYieldRatio"]},
   fvuv_vgroup_mean{OpParams["VUVGroupMean"]},
   fvuv_vgroup_max{OpParams["VUVGroupMax"]},
   fangle_bin_timing_vuv{OpParams["angle_bin_timing"]},
@@ -184,7 +189,6 @@ void PropagationTimeModel::Initialization(json OpParams)
   }
 
   SetScintillation();
- 
 }
 
 
@@ -474,18 +478,63 @@ double PropagationTimeModel::timing_model(const double* x, const double* par)
 //Sets parameter for the ScintillationTime function
 void PropagationTimeModel::SetScintillation()
 {
-ScintFunct=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
-double SlowComp = 1/(1+scint_ratio);
-ScintFunct->SetParameter(0, SlowComp);
-ScintFunct->SetParameter(1, tau_slow);
-ScintFunct->SetParameter(2, tau_fast);
-return;
+  double SlowComp;
+
+  ScintFunct_Electron=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+ElectronScintYieldRatio);
+  ScintFunct_Electron->SetParameter(0, SlowComp);
+  ScintFunct_Electron->SetParameter(1, tau_slow);
+  ScintFunct_Electron->SetParameter(2, tau_fast);
+
+  ScintFunct_Muon=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+MuonScintYieldRatio);
+  ScintFunct_Muon->SetParameter(0, SlowComp);
+  ScintFunct_Muon->SetParameter(1, tau_slow);
+  ScintFunct_Muon->SetParameter(2, tau_fast);
+
+  ScintFunct_Pion=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+PionScintYieldRatio);
+  ScintFunct_Pion->SetParameter(0, SlowComp);
+  ScintFunct_Pion->SetParameter(1, tau_slow);
+  ScintFunct_Pion->SetParameter(2, tau_fast);
+
+  ScintFunct_Kaon=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+KaonScintYieldRatio);
+  ScintFunct_Kaon->SetParameter(0, SlowComp);
+  ScintFunct_Kaon->SetParameter(1, tau_slow);
+  ScintFunct_Kaon->SetParameter(2, tau_fast);
+
+  ScintFunct_Proton=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+ProtonScintYieldRatio);
+  ScintFunct_Proton->SetParameter(0, SlowComp);
+  ScintFunct_Proton->SetParameter(1, tau_slow);
+  ScintFunct_Proton->SetParameter(2, tau_fast);
+
+  ScintFunct_Alpha=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+AlphaScintYieldRatio);
+  ScintFunct_Alpha->SetParameter(0, SlowComp);
+  ScintFunct_Alpha->SetParameter(1, tau_slow);
+  ScintFunct_Alpha->SetParameter(2, tau_fast);
+
+  ScintFunct_Other=new TF1("ScintFunc", "([0]/[1])*exp(-(x/[1]))+((1-[0])/[2])*exp(-(x/[2]))" , 0.001, 5000.);
+  SlowComp = 1/(1+0.3);
+  ScintFunct_Other->SetParameter(0, SlowComp);
+  ScintFunct_Other->SetParameter(1, tau_slow);
+  ScintFunct_Other->SetParameter(2, tau_fast);
+
+  return;
 }
 
 //......................................................................
 // Returns random number from ScintillationTime distribution
-double PropagationTimeModel::ScintTime()
+double PropagationTimeModel::ScintTime(int pdg)
 {
-gRandom->SetSeed(0);
-return ScintFunct->GetRandom ();
+  gRandom->SetSeed(0);
+  if(abs(pdg)==13) return ScintFunct_Muon->GetRandom ();
+  else if(abs(pdg)==11) return ScintFunct_Electron->GetRandom ();
+  else if(abs(pdg)==211) return ScintFunct_Pion->GetRandom ();
+  else if(abs(pdg)==321) return ScintFunct_Kaon->GetRandom ();
+  else if(abs(pdg)==2212) return ScintFunct_Proton->GetRandom ();
+  else if(abs(pdg)==1000020040) return ScintFunct_Alpha->GetRandom ();
+  else return ScintFunct_Other->GetRandom ();
 }

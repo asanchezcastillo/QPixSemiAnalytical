@@ -15,6 +15,9 @@
 #include "TTree.h"
 #include "TBranch.h"
 
+// Include for Point_t
+#include "SemiAnalyticalModel.h"
+
 // C++ includes
 #include <map>
 #include <set>
@@ -34,6 +37,9 @@ class ROOTFileManager {
         int NEntries();
         void CloseInput();
         int GetRun(){return run;}
+        std::vector<double> * GetInteractionVertexX(){return InteractionVertexX;}
+        std::vector<double> * GetInteractionVertexY(){return InteractionVertexY;}
+        std::vector<double> * GetInteractionVertexZ(){return InteractionVertexZ;}
         std::vector<double> * GetXStart(){return hitX_start;}
         std::vector<double> * GetXEnd(){return hitX_end;}
         std::vector<double> * GetYStart(){return hitY_start;}
@@ -53,6 +59,15 @@ class ROOTFileManager {
         std::vector<double> * GetPrimaryPx(){return PrimaryPx;} // Vector containing px of all primary particles
         std::vector<double> * GetPrimaryPy(){return PrimaryPy;} // Vector containing py of all primary particles
         std::vector<double> * GetPrimaryPz(){return PrimaryPz;} // Vector containing pz of all primary particles
+        std::vector<double> * GetBackgroundDecayTime(){return BackgroundDecayTime;} // Vector containing decay time of all background particles
+        std::vector<int> * GetBackgroundAtomicNumber(){return BackgroundAtomicNumber;} // Vector containing atomic number of all background particles
+        std::vector<int> * GetBackgroundAtomicMass(){return BackgroundAtomicMass;} // Vector containing atomic mass of all background particles
+        std::vector<double> * GetBackgroundVertexX(){return BackgroundVertexX;} // Vector containing interaction X position of all background particles
+        std::vector<double> * GetBackgroundVertexY(){return BackgroundVertexY;} // Vector containing interaction Y position of all background particles
+        std::vector<double> * GetBackgroundVertexZ(){return BackgroundVertexZ;} // Vector containing interaction Z position of all background particles
+
+
+
         TTree * GetInputTree(){return input_tree;}
 
     private:
@@ -100,6 +115,18 @@ class ROOTFileManager {
         std::vector<double> * PrimaryPx = new std::vector<double>();
         std::vector<double> * PrimaryPy = new std::vector<double>();
         std::vector<double> * PrimaryPz = new std::vector<double>();
+        std::vector<double> * InteractionVertexX = new std::vector<double>();
+        std::vector<double> * InteractionVertexY = new std::vector<double>();
+        std::vector<double> * InteractionVertexZ = new std::vector<double>();
+
+        
+
+        std::vector<double> * BackgroundDecayTime = new std::vector<double>(); 
+        std::vector<int> * BackgroundAtomicNumber = new std::vector<int>(); 
+        std::vector<int> * BackgroundAtomicMass = new std::vector<int>(); 
+        std::vector<double> * BackgroundVertexX = new std::vector<double>(); 
+        std::vector<double> * BackgroundVertexY = new std::vector<double>(); 
+        std::vector<double> * BackgroundVertexZ = new std::vector<double>(); 
 
         int InitialPDG_;
         int PrimaryPDG_;
@@ -109,7 +136,15 @@ class ROOTFileManager {
         double PrimaryPx_;
         double PrimaryPy_;
         double PrimaryPz_;
-
+        double BackgroundDecayTime_;
+        int BackgroundAtomicNumber_;
+        int BackgroundAtomicMass_;
+        double InteractionVertexX_;
+        double InteractionVertexY_;
+        double InteractionVertexZ_;
+        double BackgroundVertexX_;
+        double BackgroundVertexY_;
+        double BackgroundVertexZ_;
 
         //--------------------------------------------------
         // set branch addresses

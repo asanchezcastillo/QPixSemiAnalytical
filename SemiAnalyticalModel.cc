@@ -112,7 +112,6 @@ void SemiAnalyticalModel::detectedDirectVisibilities(std::vector<double>& Detect
 
     DetectedVisibilities[OpDet] = VUVVisibility(ScintPoint, op);
   }
-
 }
 
 double SemiAnalyticalModel::VUVVisibility( Point_t const& ScintPoint, OpticalDetector const& opDet) const

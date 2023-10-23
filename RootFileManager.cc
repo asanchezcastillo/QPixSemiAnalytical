@@ -46,6 +46,9 @@ void ROOTFileManager::set_branch_addresses(TTree *input_tree)
     input_tree->SetBranchAddress("InitialParticlePDG", &InitialPDG_);
     input_tree->SetBranchAddress("InteractionTime", &InteractionTime_);
     input_tree->SetBranchAddress("InitialParticleEnergy", &InitialEnergy_);
+    input_tree->SetBranchAddress("InteractionVertexX", &InteractionVertexX_);
+    input_tree->SetBranchAddress("InteractionVertexY", &InteractionVertexY_);
+    input_tree->SetBranchAddress("InteractionVertexZ", &InteractionVertexZ_);
     }
     else if(TreeName_=="Hits")
     {
@@ -69,6 +72,16 @@ void ROOTFileManager::set_branch_addresses(TTree *input_tree)
     input_tree->SetBranchAddress("PrimaryParticlePx", &PrimaryPx_);
     input_tree->SetBranchAddress("PrimaryParticlePy", &PrimaryPy_);
     input_tree->SetBranchAddress("PrimaryParticlePz", &PrimaryPz_);
+    }
+    else if(TreeName_=="Background")
+    {
+    input_tree->SetBranchAddress("DecayTime", &BackgroundDecayTime_);
+    input_tree->SetBranchAddress("AtomicNumber", &BackgroundAtomicNumber_);
+    input_tree->SetBranchAddress("AtomicMass", &BackgroundAtomicMass_);
+    input_tree->SetBranchAddress("BackgroundVertexX", &BackgroundVertexX_);
+    input_tree->SetBranchAddress("BackgroundVertexY", &BackgroundVertexY_);
+    input_tree->SetBranchAddress("BackgroundVertexZ", &BackgroundVertexZ_);
+
     }
 }
 
@@ -108,6 +121,9 @@ void ROOTFileManager::GetEvent()
         InitialPDG.push_back(InitialPDG_);
         InitialEnergy->push_back(InitialEnergy_);
         InteractionTime->push_back(InteractionTime_);
+        InteractionVertexX->push_back(InteractionVertexX_);
+        InteractionVertexY->push_back(InteractionVertexY_);
+        InteractionVertexZ->push_back(InteractionVertexZ_);
       }      
   
     }
@@ -123,7 +139,19 @@ void ROOTFileManager::GetEvent()
         PrimaryPz->push_back(PrimaryPz_);
       }
     }
-
+    else if(TreeName_=="Background") 
+    {
+      for(int i = 0; i < input_tree->GetEntries(); i++)
+      {
+        input_tree->GetEntry(i);
+        BackgroundDecayTime->push_back(BackgroundDecayTime_);
+        BackgroundAtomicNumber->push_back(BackgroundAtomicNumber_);
+        BackgroundAtomicMass->push_back(BackgroundAtomicMass_);
+        BackgroundVertexX->push_back(BackgroundVertexX_);
+        BackgroundVertexY->push_back(BackgroundVertexY_);
+        BackgroundVertexZ->push_back(BackgroundVertexZ_);
+      }
+    }
 }//Get_Event
 
 //--------------------------------------------------------------------------
@@ -146,12 +174,22 @@ void ROOTFileManager::GetEvent()
     InitialPDG.clear();
     InteractionTime->clear();
     InitialEnergy->clear();
+    InteractionVertexX->clear();
+    InteractionVertexY->clear();
+    InteractionVertexZ->clear();
 
     PrimaryPDG.clear();
     PrimaryEnergy->clear();
     PrimaryPx->clear();
     PrimaryPy->clear();
     PrimaryPz->clear();
+
+    BackgroundDecayTime->clear();
+    BackgroundAtomicMass->clear();
+    BackgroundAtomicNumber->clear();
+    BackgroundVertexX->clear();
+    BackgroundVertexY->clear();
+    BackgroundVertexZ->clear();
  }
  //--------------------------------------------------------------------------
 // Get number of entries

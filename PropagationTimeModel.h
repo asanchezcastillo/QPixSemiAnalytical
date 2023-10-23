@@ -35,8 +35,7 @@ public:
                        SemiAnalyticalModel::Point_t const& x0,
                        const size_t OpChannel);
   // Scintillation time
-  double ScintTime();
-
+  double ScintTime(int pdg);
 
 private:
   // parameter and geometry initialization
@@ -46,9 +45,6 @@ private:
   void getVUVTimes(std::vector<double>& arrivalTimes,
                    const double distance_in_cm,
                    const size_t angle_bin);
-
-  //Set scintillation properties
-  void SetScintillation();
 
   void generateParam(const size_t index, const size_t angle_bin);
 
@@ -73,6 +69,9 @@ private:
                     const std::vector<double>& yData3,
                     double x,
                     bool extrapolate);
+
+  //Set scintillation properties
+  void SetScintillation();
       
   static double finter_d(const double* x, const double* par);
 
@@ -99,8 +98,20 @@ private:
   //Scintillation properties
   double tau_fast;
   double tau_slow;
-  double scint_ratio;
-  TF1 *ScintFunct;
+  double MuonScintYieldRatio;
+  double PionScintYieldRatio;
+  double ElectronScintYieldRatio;
+  double KaonScintYieldRatio;
+  double ProtonScintYieldRatio;
+  double AlphaScintYieldRatio;
+
+  TF1 *ScintFunct_Electron;
+  TF1 *ScintFunct_Pion;
+  TF1 *ScintFunct_Muon;
+  TF1 *ScintFunct_Proton;
+  TF1 *ScintFunct_Kaon;
+  TF1 *ScintFunct_Alpha;
+  TF1 *ScintFunct_Other;
   };
 
 #endif

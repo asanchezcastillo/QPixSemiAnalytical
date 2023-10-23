@@ -44,6 +44,7 @@
         , fLarqlChi0D{OpParams["fLarqlChi0D"]}
         , fLarqlAlpha{OpParams["fLarqlAlpha"]}
         , fLarqlBeta{OpParams["fLarqlBeta"]}
+        , fQAlpha{OpParams["fQAlpha"]}
         , EF{OpParams["EF"]}
 
     {}
@@ -51,15 +52,16 @@
 
     double Energy() const { return edep; }
 
-    double LArQL()
+    void LArQL()
     {
-        if(edep==0) return 0; // Return 0 if the edep is zero.
-        if(pdg==22) return 0; // Return 0 is the edep is by a gamma (Probably it'd be more convinient not to save edeps coming from gammas). 
+        if(edep==0 || pdg==22) // Return 0 if the edep is zero. Return 0 is the edep is by a gamma (Probably it'd be more convinient not to save edeps coming from gammas). 
+        {
+            num_photons = 0;
+            num_electrons = 0;
+        } 
         double num_quanta;
         double num_ions;
-        double num_electrons;
         double recomb;
-        double num_photons;
         double EscapingFraction;
         double FieldCorrection;
 
@@ -73,11 +75,15 @@
         num_electrons = num_ions*recomb;
         num_photons = num_quanta - num_electrons;
         LightYield = num_photons/edep;
-        if(num_photons<0){   
+        if(num_photons<0)
+        {   
          std::cout << "WARNING: the number of photons is < 0, ignoring this hit" << std::endl;;
-         return 0;
-         }
-        return num_photons ;
+         num_photons = 0;
+        }
+        if(pdg==1000020040){
+            num_electrons=num_electrons*fQAlpha;
+            num_photons=num_photons*fQAlpha;
+        }
     }
 
     SemiAnalyticalModel::Point_t PositionStart() const { return {start_position.x, start_position.y, start_position.z}; }
@@ -86,6 +92,8 @@
     double TimeStart() const { return end_time ; }
     double Dx() const { return dx ; }
     double GetLightYield() { return LightYield; } 
+    double GetNumberElectrons() { return num_electrons;}
+    double GetNumberPhotons() { return num_photons;}
     SemiAnalyticalModel::Point_t MidPoint() const {return { (end_position.x+start_position.x)/2, (end_position.y+start_position.y)/2, (end_position.z + start_position.z)/2} ;}
 
     private:
@@ -110,9 +118,13 @@
     double fLarqlAlpha;
     double fLarqlBeta;
     double EF;
-
+    double fQAlpha;
     double LightYield;
     int pdg;
+
+    double num_electrons; 
+    double num_photons;
+
     };
 
     #endif 
